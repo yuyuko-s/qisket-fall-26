@@ -1,0 +1,26 @@
+# Split configuration (PLAN §3.5, §4). Changing anything here changes config_hash and
+# requires rebuilding splits/ (notebooks/01_parse_and_splits.ipynb). Log changes in
+# docs/DECISIONS.md.
+
+# Exclusions (docs/DATA.md). The 3,054 uncharacterized molecules are always excluded.
+exclude_readme_flagged: true   # also drop the 11 hard-to-converge molecules from readme.txt
+
+# Split seed: fixes the working pool and both test sets.
+split_seed: 2026
+
+# Working pool: at most this many molecules per formula, sampled within each formula.
+max_per_formula: 25
+
+# Unseen-formula test set: whole formulas held out, stratified by heavy-atom count.
+unseen_formula_frac: 0.15
+unseen_per_formula: 5
+unseen_max_total: 600
+
+# Familiar-formula test set: formulas that also appear in every training set (via anchors).
+n_familiar_formulas: 40   # must be < the smallest training size
+familiar_per_formula: 2
+familiar_min_pool: 3      # 2 test molecules + at least 1 left for the anchor
+
+# Nested training sets S_{s,N}, one family per training seed.
+train_sizes: [100, 300, 1000]
+train_seeds: [0, 1, 2]

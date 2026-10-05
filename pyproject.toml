@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qm9dipole"
+version = "0.1.0"
+description = "QM9 dipole magnitude from fewer labels: quantum kernel ridge regression vs. classical baselines (Qiskit Fall Fest 2026, prompt 07)."
+requires-python = ">=3.11"
+# Compatible ranges here; exact pins for the reference environment are in requirements.txt.
+dependencies = [
+    "qiskit>=2.0,<3",
+    "qiskit-aer>=0.17",
+    "qiskit-ibm-runtime>=0.40",
+    "numpy>=2.0",
+    "scipy>=1.13",
+    "scikit-learn>=1.5",
+    "pandas>=2.2",
+    "pyarrow>=17",
+    "matplotlib>=3.9",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ipykernel>=6", "nbconvert>=7", "nbformat>=5"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

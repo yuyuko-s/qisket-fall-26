@@ -1,0 +1,22 @@
+# Decisions log
+
+Every change from a PLAN.md default, and every other design choice, is logged here with its
+date and reason **before** any test-set result is seen. Anything decided or rerun after test
+results have been seen is labeled **POST-HOC** here and in the writeup.
+
+| Date | Change | Reason |
+|---|---|---|
+| 2026-10-04 | Milestone drivers are Jupyter notebooks in `notebooks/`, one per milestone. They replace `scripts/run_dev.py`, `build_splits.py` and `make_figures.py`. All logic still lives in `src/qm9dipole/` and is covered by pytest. | The team prefers notebooks. Keeping the logic in the package keeps it testable and the notebooks thin. |
+| 2026-10-04 | Exception: the final test evaluation stays a script, `scripts/final_eval.py`. | CLAUDE.md rule 2 requires a single deliberate run. A script runs as one unit, while notebook cells are easy to rerun piecemeal. |
+| 2026-10-04 | Reuse the existing conda env `qff26` (Python 3.12.15) and its Jupyter kernel "Python (qff26)". Exact pins are in `requirements.txt`. | It already had the whole stack installed and tested. |
+| 2026-10-04 | Add `pyarrow` to the stack. | The parsed table is saved as parquet (one of the two PLAN §3.3 options), and per-molecule arrays fit parquet list columns. |
+| 2026-10-04 | Read the QM9 tarball in place with `tarfile`; never extract it. | The project folder is synced by OneDrive, and 133,885 small files would swamp the sync. A full scan takes about 14 s. |
+| 2026-10-04 | On a re-run, `fetch()` re-verifies any existing raw file and raises `ChecksumError` on a mismatch; it does not silently re-download. | A file that verified when written can still change later in a synced folder. Failing loudly makes a person investigate before results are built on bad data. |
+| 2026-10-04 | Verify downloads against figshare's published size and MD5, and also record SHA-256. | PLAN §3.1 asks for SHA-256 in DATA.md, but figshare publishes MD5, which is the only checksum that can be verified against the source. |
+| 2026-10-05 | Exclude all 11 molecules the readme flags as difficult to converge, in addition to the 3,054 uncharacterized ones. This removes 8 more, since 3 overlap. | Two converged to saddle points and six only at a loose threshold, so their geometries are less trustworthy. The cost (8 of ~131k molecules) is negligible. Config: `exclude_readme_flagged: true`. |
+| 2026-10-05 | Formula strings use the PLAN §3.3 order (C, H, then F, N, O), even without carbon, e.g. NH₃ → `H3N`. | Follows PLAN literally. A formula is only a grouping key, so consistency matters more than the Hill convention for carbon-free molecules. |
+| 2026-10-05 | Keep the relaxed-geometry SMILES (not the GDB-17 one) in the `smiles` column. | It describes the geometry we actually use. It is for reference and plots only, never a feature. |
+| 2026-10-05 | Keep zwitterions and other high-μ molecules (up to 29.6 D). | They are valid computed values with no reason to exclude them. Their effect on RMSE is noted in DATA.md. |
+| 2026-10-05 | Randomness: the split seed seeds one `SeedSequence`, which spawns three independent streams (pool, unseen draw, familiar draw). Training seed s uses `SeedSequence([split_seed, s])`. | Changing one step's draws cannot shift another's, and test sets are provably independent of the training seeds (unit-tested). |
+| 2026-10-05 | Stratified unseen draw: each heavy-atom stratum contributes round-half-up(0.15 × its formula count). Strata with ≤3 formulas contribute none (only heavy-atom count 1 here: 3 formulas). | PLAN gives the fraction but not the rounding rule. |
+| 2026-10-05 | Keep `n_familiar_formulas = 40` (PLAN default) for now. **Open:** familiar formulas make up 43–50% of S_(s,100) against 9% of P. | The PLAN §4 note asks for this to be reviewed. Decide before any test-set result is seen, ideally before M3; lowering it means rebuilding splits/. |
