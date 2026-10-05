@@ -1,7 +1,7 @@
 # Exact pins for the reference environment (Python 3.12), 2026-10-05.
-# From the repo root, either:
-#   conda env create -f environment.yml          (creates env "qm9dipole")
-#   pip install -r requirements.txt              (into a fresh Python 3.12 venv)
+# Install from the repo root into an ACTIVATED environment (see README.md, Setup):
+#   conda env create -f environment.yml && conda activate qm9dipole   (or a Python 3.12 venv)
+#   pip install -r requirements.txt
 # The last line installs this project's package in editable mode; the notebooks need it.
 qiskit==2.5.2
 qiskit-aer==0.17.2

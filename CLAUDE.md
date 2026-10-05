@@ -65,9 +65,9 @@ Beating classical ML is **not** required. Fair comparisons and an honest conclus
 - Exact pins are in `requirements.txt`; `pyproject.toml` holds compatible ranges. `pyarrow`
   is included for parquet.
 - 8-qubit statevector simulation is cheap; a laptop CPU is enough.
-- **Environment:** the conda env `qm9dipole`, created with `conda env create -f environment.yml`
-  (Python 3.12; pins from `requirements.txt`, whose last line `-e .` installs this package
-  in editable mode). The older env `qff26` has the same pins and also works.
+- **Environment:** the conda env `qm9dipole`: `conda env create -f environment.yml` makes
+  Python 3.12, then `pip install -r requirements.txt` *after activation* installs the pins
+  (its last line `-e .` installs this package in editable mode). The older env `qff26` has the same pins and also works.
   `PYTHONNOUSERSITE=1` must be set: `environment.yml` sets it on activation, and when calling an
   env's python.exe directly without activating, set it yourself. Setup for others is in `README.md`.
 
@@ -116,8 +116,9 @@ Handoff files/   original handoff bundle (gitignored archive; docs/ is canonical
 ## Commands (keep this section current as notebooks and scripts land)
 
 ```
-conda env create -f environment.yml && conda activate qm9dipole   # or: pip install -r requirements.txt
-pytest -q
+conda env create -f environment.yml && conda activate qm9dipole
+pip install -r requirements.txt     # only after activation (PYTHONNOUSERSITE; see environment.yml)
+pip check && pytest -q
 jupyter nbconvert --to notebook --execute --inplace notebooks/00_setup_and_data.ipynb   # M0: download + checks
 jupyter nbconvert --to notebook --execute --inplace notebooks/01_parse_and_splits.ipynb # M1: parquet + splits/
 python scripts/final_eval.py --config configs/frozen.yaml  # M7: run once, at the end (not yet written)

@@ -30,6 +30,7 @@ You need Python 3.12 and Git. Every command below runs from the repository root.
 ```bash
 conda env create -f environment.yml
 conda activate qm9dipole
+pip install -r requirements.txt
 ```
 
 **Option B: plain Python** (a Python 3.12 interpreter)
@@ -42,7 +43,9 @@ pip install -r requirements.txt
 ```
 
 Both options install the exact package versions in `requirements.txt`, plus this project's
-`qm9dipole` package in editable mode. The notebooks import it.
+`qm9dipole` package in editable mode. The notebooks import it. With conda, run `pip install`
+*after* `conda activate`: activation hides any packages in your per-user Python folder, which
+would otherwise make pip skip dependencies (see the comment in `environment.yml`).
 
 **Choosing the notebook kernel.** The notebooks use the standard `python3` kernel, which means
 "the Python of the environment Jupyter runs in":
@@ -53,7 +56,8 @@ Both options install the exact package versions in `requirements.txt`, plus this
 The first cell of every notebook checks the environment. It stops with instructions if the
 package is missing, and warns if installed versions differ from `requirements.txt`.
 
-**Check the install:** `pytest -q` should report all tests passing.
+**Check the install:** `pip check` should report no broken requirements, and `pytest -q`
+should report all tests passing.
 
 ## Reproduce
 
