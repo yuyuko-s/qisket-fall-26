@@ -1,0 +1,16 @@
+# Conda environment for the QM9 dipole project. From the repo root:
+#   conda env create -f environment.yml
+#   conda activate qm9dipole
+# Package versions are pinned in requirements.txt (shared with the plain-pip setup).
+name: qm9dipole
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      - -r requirements.txt
+variables:
+  # Ignore packages in the per-user site directory (%APPDATA%\Python\Python312 on Windows),
+  # which would otherwise leak into this environment and shadow the pinned versions.
+  PYTHONNOUSERSITE: "1"

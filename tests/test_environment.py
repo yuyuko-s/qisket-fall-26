@@ -3,7 +3,9 @@
 import numpy as np
 import pytest
 
-from qm9dipole.provenance import package_versions
+from qm9dipole.provenance import (
+    ProjectEnvironmentError, check_environment, package_versions, pinned_versions,
+)
 
 
 def test_tracked_packages_installed():
@@ -40,3 +42,30 @@ def test_aer_sampler_runs():
     counts = SamplerV2(seed=0).run([qc], shots=200).result()[0].data.meas.get_counts()
     assert counts == {"00": 200}
     assert np.isclose(counts["00"] / 200, 1.0)
+
+
+# --- check_environment ---------------------------------------------------------------
+
+def test_pinned_versions_reads_requirements():
+    pins = pinned_versions()
+    assert pins["qiskit"].startswith("2.")
+    assert "-e ." not in pins and all("#" not in k for k in pins)
+
+
+def test_check_environment_accepts_this_environment():
+    # Version differences only warn, so this passes in any complete project environment.
+    assert check_environment().startswith("environment OK")
+
+
+def test_check_environment_rejects_missing_package(tmp_path):
+    req = tmp_path / "requirements.txt"
+    req.write_text("numpy==1.0\ndefinitely-not-installed-pkg==1.0\n")
+    with pytest.raises(ProjectEnvironmentError, match="definitely-not-installed-pkg"):
+        check_environment(req)
+
+
+def test_check_environment_warns_on_version_mismatch(tmp_path):
+    req = tmp_path / "requirements.txt"
+    req.write_text("numpy==0.0.1  # deliberately wrong\n")
+    with pytest.warns(UserWarning, match="numpy"):
+        check_environment(req)

@@ -65,16 +65,20 @@ Beating classical ML is **not** required. Fair comparisons and an honest conclus
 - Exact pins are in `requirements.txt`; `pyproject.toml` holds compatible ranges. `pyarrow`
   is included for parquet.
 - 8-qubit statevector simulation is cheap; a laptop CPU is enough.
-- **Environment:** the conda env `qff26` (Python 3.12.15) at
-  `C:\Users\dougl\.conda\envs\qff26`, with Jupyter kernel `qff26` ("Python (qff26)").
-  `PYTHONNOUSERSITE=1` must be set; the env and the kernel both set it. The package is
-  installed editable (`pip install --no-deps -e .`).
+- **Environment:** the conda env `qm9dipole`, created with `conda env create -f environment.yml`
+  (Python 3.12; pins from `requirements.txt`, whose last line `-e .` installs this package
+  in editable mode). The older env `qff26` has the same pins and also works.
+  `PYTHONNOUSERSITE=1` must be set: `environment.yml` sets it on activation, and when calling an
+  env's python.exe directly without activating, set it yourself. Setup for others is in `README.md`.
 
 ## Working style
 
 - **Notebooks are the drivers**: one per milestone in `notebooks/`, named `NN_topic.ipynb`.
   All logic lives in `src/qm9dipole/` and is tested with pytest; notebooks import it and stay
   thin. Every notebook must run top to bottom and be safe to re-run.
+- Notebooks must keep the generic kernelspec `python3` (never a machine-specific kernel name),
+  and their first code cell is the environment check
+  (`qm9dipole.provenance.check_environment()`).
 - The one exception is `scripts/final_eval.py`, which stays a script so it runs once, as a
   single unit (rule 2).
 - `data/raw/dsgdb9nsd.xyz.tar.bz2` is **never extracted** (OneDrive sync). Read it with
@@ -83,7 +87,8 @@ Beating classical ML is **not** required. Fair comparisons and an honest conclus
 ## Repo layout
 
 ```
-CLAUDE.md
+CLAUDE.md, README.md (setup and reproduction for teammates and judges)
+environment.yml, requirements.txt, pyproject.toml
 docs/        BRIEF.md, PLAN.md, DATA.md, DECISIONS.md, prompt_slide.png
 configs/     splits.yaml, dev.yaml, frozen.yaml
 data/raw/    QM9 downloads (gitignored)
@@ -111,8 +116,7 @@ Handoff files/   original handoff bundle (gitignored archive; docs/ is canonical
 ## Commands (keep this section current as notebooks and scripts land)
 
 ```
-conda activate qff26
-pip install -r requirements.txt && pip install --no-deps -e .
+conda env create -f environment.yml && conda activate qm9dipole   # or: pip install -r requirements.txt
 pytest -q
 jupyter nbconvert --to notebook --execute --inplace notebooks/00_setup_and_data.ipynb   # M0: download + checks
 jupyter nbconvert --to notebook --execute --inplace notebooks/01_parse_and_splits.ipynb # M1: parquet + splits/

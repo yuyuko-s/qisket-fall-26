@@ -1,5 +1,8 @@
-# Exact pins for the reference environment (conda env qff26, Python 3.12.15), 2026-10-04.
-# Install: pip install -r requirements.txt && pip install --no-deps -e .
+# Exact pins for the reference environment (Python 3.12), 2026-10-05.
+# From the repo root, either:
+#   conda env create -f environment.yml          (creates env "qm9dipole")
+#   pip install -r requirements.txt              (into a fresh Python 3.12 venv)
+# The last line installs this project's package in editable mode; the notebooks need it.
 qiskit==2.5.2
 qiskit-aer==0.17.2
 qiskit-ibm-runtime==0.50.0
@@ -10,8 +13,11 @@ pandas==3.0.6
 pyarrow==25.0.1
 matplotlib==3.11.2
 pyyaml==6.0.3
-# dev
+# notebooks and tests
 pytest==9.1.1
 ipykernel==7.4.0
 nbconvert==7.17.1
 nbformat==5.11.1
+jupyterlab==4.6.4
+# this project
+-e .
