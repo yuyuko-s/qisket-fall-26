@@ -1,7 +1,7 @@
 {
  "split_seed": 2026,
  "config_hash": "da596c9e207c",
- "git_hash": "nocommit",
+ "git_hash": "bd036fb6abe3b44f2be17d65b8ad86d65af190c9",
  "kind": "train",
  "seed": 1,
  "n": 1000,
