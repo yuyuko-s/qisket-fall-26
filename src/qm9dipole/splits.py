@@ -227,11 +227,13 @@ def save_splits(s: Splits, out_dir: Path = SPLITS_DIR, extra_meta: dict | None =
     Existing train_s*_n*.json files are removed first, so sizes or seeds dropped from the
     config cannot leave stale files behind.
     """
+    # Stamp before touching any file: deleting committed split files would make the
+    # working tree dirty, so git_hash() would always report "-dirty".
+    stamp = {"split_seed": s.config["split_seed"], "config_hash": config_hash(s.config),
+             "git_hash": git_hash()}
     out_dir.mkdir(parents=True, exist_ok=True)
     for old in out_dir.glob("train_s*_n*.json"):
         old.unlink()
-    stamp = {"split_seed": s.config["split_seed"], "config_hash": config_hash(s.config),
-             "git_hash": git_hash()}
     written = []
 
     def write(name: str, payload: dict) -> None:

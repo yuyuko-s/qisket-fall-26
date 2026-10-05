@@ -94,6 +94,22 @@ def test_save_load_round_trip(splits, tmp_path):
         np.testing.assert_array_equal(back.anchors[seed], splits.anchors[seed])
 
 
+def test_save_stamps_git_hash_before_touching_files(splits, tmp_path, monkeypatch):
+    # Regression: deleting the old train files before stamping made every stamp "-dirty".
+    import qm9dipole.splits as splits_module
+
+    save_splits(splits, tmp_path)
+    n_train_files = len(list(tmp_path.glob("train_s*_n*.json")))
+
+    def fake_git_hash():
+        assert len(list(tmp_path.glob("train_s*_n*.json"))) == n_train_files
+        return "abc123"
+
+    monkeypatch.setattr(splits_module, "git_hash", fake_git_hash)
+    save_splits(splits, tmp_path)
+    assert '"git_hash": "abc123"' in (tmp_path / "train_s0_n50.json").read_text()
+
+
 # --- Negative controls: break one invariant at a time --------------------------------
 
 def _top_only(s):
