@@ -55,7 +55,7 @@ Beating classical ML is **not** required. Fair comparisons and an honest conclus
 
 ## Stack
 
-- Python 3.11+
+- Python 3.12 (`requires-python >= 3.12`: the pinned numpy 2.5 needs it)
 - `qiskit` 2.x, `qiskit-aer`, `qiskit-ibm-runtime` (fake backends for noise models; optional
   QPU run)
 - `numpy`, `scipy`, `scikit-learn`, `pandas`, `matplotlib`, `pyyaml`, `pytest`

@@ -23,7 +23,8 @@ coordinates. Beating classical ML is not the goal; a fair comparison and an hone
 
 ## Setup
 
-You need Python 3.12 and Git. Every command below runs from the repository root.
+You need Git and either conda or Python 3.12. Every command below runs from the repository
+root.
 
 **Option A: conda**
 
@@ -33,14 +34,32 @@ conda activate qm9dipole
 pip install -r requirements.txt
 ```
 
-**Option B: plain Python** (a Python 3.12 interpreter)
+**Option B: plain Python.** This needs Python **3.12** installed. Create the venv with 3.12
+*explicitly*, because a bare `python` may be a different version (Anaconda's base Python, for
+example):
 
 ```bash
-python -m venv .venv
-.venv\Scripts\activate            # Windows
+py -3.12 -m venv .venv            # Windows (Python launcher)
+python3.12 -m venv .venv          # macOS / Linux
+
+.venv\Scripts\activate            # Windows: PowerShell or cmd
+source .venv/Scripts/activate     # Windows: Git Bash
 source .venv/bin/activate         # macOS / Linux
+
+python --version                  # must print Python 3.12.x
 pip install -r requirements.txt
 ```
+
+If `python --version` shows another version, delete `.venv` and recreate it with a 3.12
+interpreter.
+
+**Troubleshooting**
+- `No matching distribution found for numpy==2.5.3`: the environment is not Python 3.12. The
+  pinned numpy needs 3.12, so recreate the venv as above.
+- Windows, `OSError: [Errno 2] No such file or directory` with a very long path during
+  `pip install`: the path exceeds Windows' 260-character limit. Clone into a shorter folder,
+  or enable long paths (*Local Group Policy → Enable Win32 long paths*, or the registry value
+  `LongPathsEnabled`).
 
 Both options install the exact package versions in `requirements.txt`, plus this project's
 `qm9dipole` package in editable mode. The notebooks import it. With conda, run `pip install`

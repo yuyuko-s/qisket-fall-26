@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "qm9dipole"
 version = "0.1.0"
 description = "QM9 dipole magnitude from fewer labels: quantum kernel ridge regression vs. classical baselines (Qiskit Fall Fest 2026, prompt 07)."
-requires-python = ">=3.11"
+requires-python = ">=3.12"  # numpy 2.5 (pinned) needs 3.12
 # Compatible ranges here; exact pins for the reference environment are in requirements.txt.
 dependencies = [
     "qiskit>=2.0,<3",
