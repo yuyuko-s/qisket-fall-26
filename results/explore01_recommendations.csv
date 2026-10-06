@@ -1,0 +1,11 @@
+topic,evidence,finding,action,notebook
+roles,"q, the 11 electronic/thermal properties, freqs",DFT outputs from the same calculation as |μ|,exploration-only block; never in a headline feature set,02
+"A, B, C",rotational constants,"exactly 505.379 GHz·amu·Å² / I(Z, R), so legal; A = 0 marks a linear molecule (∞); heavy tail","replace with inertia moments computed from Z and R (finite, same information)",02
+freqs,25 doubled lists,raw-file artifact: the list is printed twice,keep the first copy; summarize the spectrum,02
+duplicates,24 molecules in 12 groups,"same geometry and |μ|; no S_(s,N) holds both twins; InChI merges tautomers","keep one per group in pool-wide analyses; identify by geometry, not InChI",02
+redundancy,6 pairs with |ρ| ≥ 0.99,"e.g. U0/U/H/G, size counts",drop the later of each pair (cleaning.redundancy_spearman = 0.99),02
+bond lengths,"C≡C, C≡N, C=O, N=O peaks separated by empty valleys",bond order is readable from geometry,count multiple bonds by length (polar groups),02
+long tails,8 fields with |skew| > 1.0,"A, B, C, mu, n_heavy, n_F, freq_min, freq_max",compare log / power / quantile scaling against z-scores by CV,03
+target,skewness 1.73; √|μ| -0.26,right tail of zwitterions; spike near 0,"compare raw, √ and log(1+·) targets by CV (predictions inverted to debye)",03
+composition,ω² = 0.31,the formula explains a minority of the variance,geometry-aware features are essential; composition-only is a baseline,04
+outliers,32 molecules ≥ 9 D,zwitterions: valid computed values,"keep; report MAE (primary) and RMSE, and RMSE without the tail",05
