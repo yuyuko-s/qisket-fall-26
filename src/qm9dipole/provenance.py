@@ -80,17 +80,44 @@ def pinned_versions(requirements: Path | None = None) -> dict[str, str]:
     return pins
 
 
-def check_environment(requirements: Path | None = None, python: str = "3.12") -> str:
+def _working_dir() -> Path:
+    """Folder of the running notebook when VS Code reveals it, else the current directory.
+
+    Jupyter and nbconvert start kernels in the notebook's folder; VS Code also sets
+    `__vsc_ipynb_file__` in the kernel's namespace, which works whatever its root setting.
+    """
+    try:
+        from IPython import get_ipython
+
+        shell = get_ipython()
+        nb_file = shell.user_ns.get("__vsc_ipynb_file__") if shell is not None else None
+    except ImportError:
+        nb_file = None
+    return Path(nb_file).parent if nb_file else Path.cwd()
+
+
+def check_environment(
+    requirements: Path | None = None, python: str = "3.12", workdir: Path | None = None
+) -> str:
     """Check that this is the project environment and return a one-line summary.
 
     Raises ProjectEnvironmentError if the package is not an editable install of this
-    repository or a pinned package is missing. Version differences only warn: the code
-    still runs, but numbers may differ slightly from the reference results.
+    repository, if it belongs to a different checkout than `workdir` (default: the running
+    notebook's folder), or if a pinned package is missing. Version differences only warn:
+    the code still runs, but numbers may differ slightly from the reference results.
     """
     if not (REPO_ROOT / "pyproject.toml").exists():
         raise ProjectEnvironmentError(
             f"qm9dipole is installed from {REPO_ROOT}, not from a repository checkout. Install it "
             "in editable mode from the repo root: pip install -r requirements.txt"
+        )
+    workdir = Path(workdir or _working_dir()).resolve()
+    if REPO_ROOT.resolve() not in (workdir, *workdir.parents):
+        raise ProjectEnvironmentError(
+            f"this kernel's qm9dipole package belongs to the checkout at {REPO_ROOT}, but this "
+            f"notebook is in {workdir}. Data and splits would be read and written in the other "
+            "checkout. Select the environment created for this checkout as the kernel "
+            "(README.md, Setup)."
         )
     pins = pinned_versions(requirements)
     missing, differ = [], []

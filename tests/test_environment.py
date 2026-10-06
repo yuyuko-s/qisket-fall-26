@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+from qm9dipole import REPO_ROOT
 from qm9dipole.provenance import (
     ProjectEnvironmentError, check_environment, package_versions, pinned_versions,
 )
@@ -54,18 +55,26 @@ def test_pinned_versions_reads_requirements():
 
 def test_check_environment_accepts_this_environment():
     # Version differences only warn, so this passes in any complete project environment.
-    assert check_environment().startswith("environment OK")
+    assert check_environment(workdir=REPO_ROOT / "notebooks").startswith("environment OK")
+
+
+def test_check_environment_rejects_notebook_from_another_checkout(tmp_path):
+    # The package in this kernel belongs to REPO_ROOT; a notebook elsewhere must not use it.
+    other_checkout = tmp_path / "other-clone" / "notebooks"
+    other_checkout.mkdir(parents=True)
+    with pytest.raises(ProjectEnvironmentError, match="belongs to the checkout"):
+        check_environment(workdir=other_checkout)
 
 
 def test_check_environment_rejects_missing_package(tmp_path):
     req = tmp_path / "requirements.txt"
     req.write_text("numpy==1.0\ndefinitely-not-installed-pkg==1.0\n")
     with pytest.raises(ProjectEnvironmentError, match="definitely-not-installed-pkg"):
-        check_environment(req)
+        check_environment(req, workdir=REPO_ROOT)
 
 
 def test_check_environment_warns_on_version_mismatch(tmp_path):
     req = tmp_path / "requirements.txt"
     req.write_text("numpy==0.0.1  # deliberately wrong\n")
     with pytest.warns(UserWarning, match="numpy"):
-        check_environment(req)
+        check_environment(req, workdir=REPO_ROOT)
