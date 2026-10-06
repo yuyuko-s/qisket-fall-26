@@ -6,7 +6,8 @@ import numpy as np
 import pytest
 
 from qm9dipole.data import (
-    TARBALL, hill_formula, iter_tarball, load_qm9_table, parse_xyz, save_qm9_table,
+    HEADLINE_INPUTS, PROPERTY_NAMES, TARBALL, TARGET, hill_formula, iter_tarball,
+    load_qm9_table, parse_xyz, qm9_table_is_current, save_qm9_table,
 )
 
 # Molecule 1 (methane), verbatim from the tarball.
@@ -39,10 +40,21 @@ def test_parses_methane():
     assert m["smiles"] == "C"
 
 
-def test_never_returns_mulliken_charges_or_other_properties():
+def test_keeps_charges_and_all_properties_for_exploration():
     m = parse_xyz(METHANE)
-    assert set(m) == {"id", "formula", "n_atoms", "n_heavy", "Z", "R", "mu", "smiles"}
-    assert -0.535689 not in m["R"]  # the charge column is not folded into coordinates
+    assert set(m) == {"id", "formula", "n_atoms", "n_heavy", "Z", "R", "q", *PROPERTY_NAMES, "smiles"}
+    assert m["q"] == pytest.approx([-0.535689, 0.133921, 0.133922, 0.133923, 0.133923])
+    assert abs(m["q"].sum()) < 1e-5  # neutral molecule
+    assert -0.535689 not in m["R"]  # charges are not folded into the coordinates
+    # Readme order: A, B, C, mu, alpha, homo, lumo, gap, r2, zpve, U0, U, H, G, Cv
+    assert (m["A"], m["mu"], m["alpha"], m["homo"], m["U0"], m["Cv"]) == pytest.approx(
+        (157.7118, 0.0, 13.21, -0.3877, -40.47893, 6.469)
+    )
+
+
+def test_headline_inputs_are_the_briefs():
+    # The brief's pipeline is composition + geometry -> model -> |mu|.
+    assert HEADLINE_INPUTS == ("Z", "R") and TARGET == "mu"
 
 
 def test_fortran_exponent():
@@ -82,7 +94,20 @@ def test_parquet_round_trip(tmp_path):
     assert back["id"].tolist() == [1, 2]
     for a, b in zip(table["R"], back["R"]):
         np.testing.assert_array_equal(a, b)  # bit-exact, shape (n, 3) restored
+    for a, b in zip(table["q"], back["q"]):
+        np.testing.assert_array_equal(a, b)
     assert back["Z"][0].dtype == np.int8
+    assert qm9_table_is_current(path)
+
+
+def test_table_from_older_parser_is_stale(tmp_path):
+    import pandas as pd
+
+    table = pd.DataFrame([parse_xyz(METHANE)]).drop(columns=["q", "alpha"])
+    path = tmp_path / "old.parquet"
+    save_qm9_table(table, path)
+    assert not qm9_table_is_current(path)
+    assert not qm9_table_is_current(tmp_path / "missing.parquet")
 
 
 @needs_tarball

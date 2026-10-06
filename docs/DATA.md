@@ -29,11 +29,17 @@ Observations from M0:
 
 ## Parsed table (M1)
 
-`data/processed/qm9.parquet` (gitignored, 61.6 MB), built by `notebooks/01_parse_and_splits.ipynb`:
+`data/processed/qm9.parquet` (gitignored), built by `notebooks/01_parse_and_splits.ipynb`:
 - 133,885 molecules parsed, **0 parse failures**, 621 distinct formulas;
-- columns: `id`, `formula`, `n_atoms`, `n_heavy`, `Z`, `R` (Å; stored flattened, restored to
-  (n, 3) by `load_qm9_table`), `mu` (debye), `smiles` (relaxed geometry, for reference only);
-- Mulliken charges and the other 14 properties are dropped at parse time (CLAUDE.md rule 1);
+- every field of every record is kept, with these roles:
+
+  | Role | Columns |
+  |---|---|
+  | Headline inputs | `Z` (atomic numbers), `R` (Å; stored flattened, restored to (n, 3) by `load_qm9_table`) |
+  | Target | `mu` (debye) |
+  | Exploration only, reported separately (CLAUDE.md rule 1) | `q` (Mulliken charges, e); `A`, `B`, `C`, `alpha`, `homo`, `lumo`, `gap`, `r2`, `zpve`, `U0`, `U`, `H`, `G`, `Cv` (units in `readme.txt`) |
+  | Bookkeeping | `id`, `formula`, `n_atoms`, `n_heavy`, `smiles` (relaxed geometry) |
+
 - 176 coordinates use the Fortran `*^` exponent (first: molecule 212), and all of them parse.
 
 Spot checks: methane μ = 0 D, ammonia 1.6256 D, water 1.8511 D (experiment ≈ 1.85 D).

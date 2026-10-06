@@ -144,4 +144,4 @@ def check_environment(
             stacklevel=2,
         )
     return (f"environment OK: Python {py}, {len(pins)} pinned packages checked, "
-            f"{len(differ)} differ; repo {REPO_ROOT}")
+            f"{len(differ)} differ; package and notebook are in the same checkout")

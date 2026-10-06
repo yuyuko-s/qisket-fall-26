@@ -5,8 +5,25 @@ Qiskit Fall Fest 2026 (University of Ottawa), hackathon prompt 07 (QML, advanced
 We predict the **dipole-moment magnitude |μ| (debye)** of small organic molecules from QM9 with
 a team-built **quantum kernel ridge regressor**. We compare it fairly against classical models as
 the number of training labels grows, on molecules whose formulas were seen in training
-(*familiar*) and on formulas never seen (*unseen*). Inputs are only atom types and 3D
-coordinates. Beating classical ML is not the goal; a fair comparison and an honest conclusion are.
+(*familiar*) and on formulas never seen (*unseen*). Beating classical ML is not the goal; a fair
+comparison and an honest conclusion are.
+
+## How we work
+
+**The headline comparison is strict.** It uses only atom types and 3D coordinates, as the brief
+asks:
+- every model sees the same nested training sets (100 ⊂ 300 ⊂ 1000 molecules, 3 seeds);
+- settings are tuned by cross-validation inside the training set only;
+- the test sets are evaluated exactly once, at the end;
+- every representation is tested for invariance to rotation, translation and atom reordering.
+
+**Around it, we explore freely.** QM9 also records each atom's partial charge and 14 other
+computed properties. A dipole is roughly a charge-weighted sum of atom positions, so the
+charges alone already track |μ| closely. We use these extras to ask questions such as "how much
+of the dipole do the charges explain?" and "does predicting charges first help a quantum
+model?". Results that use them are labeled and reported separately, because those properties
+come from the same quantum-chemistry calculation as the answer. Decisions, experiments and
+dead ends are logged in `docs/DECISIONS.md`.
 
 ## Status
 
@@ -35,8 +52,7 @@ pip install -r requirements.txt
 ```
 
 **Option B: plain Python.** This needs Python **3.12** installed. Create the venv with 3.12
-*explicitly*, because a bare `python` may be a different version (Anaconda's base Python, for
-example):
+*explicitly*, because a bare `python` may point to a different version:
 
 ```bash
 py -3.12 -m venv .venv            # Windows (Python launcher)
@@ -53,6 +69,11 @@ pip install -r requirements.txt
 If `python --version` shows another version, delete `.venv` and recreate it with a 3.12
 interpreter.
 
+Both options install the exact package versions in `requirements.txt`, plus this project's
+`qm9dipole` package in editable mode. The notebooks import it. With conda, run `pip install`
+*after* `conda activate`: activation hides any packages in your per-user Python folder, which
+would otherwise make pip skip dependencies (see the comment in `environment.yml`).
+
 **Troubleshooting**
 - `No matching distribution found for numpy==2.5.3`: the environment is not Python 3.12. The
   pinned numpy needs 3.12, so recreate the venv as above.
@@ -60,11 +81,8 @@ interpreter.
   `pip install`: the path exceeds Windows' 260-character limit. Clone into a shorter folder,
   or enable long paths (*Local Group Policy → Enable Win32 long paths*, or the registry value
   `LongPathsEnabled`).
-
-Both options install the exact package versions in `requirements.txt`, plus this project's
-`qm9dipole` package in editable mode. The notebooks import it. With conda, run `pip install`
-*after* `conda activate`: activation hides any packages in your per-user Python folder, which
-would otherwise make pip skip dependencies (see the comment in `environment.yml`).
+- The first notebook cell says the package "belongs to the checkout at …": the selected kernel
+  is an environment set up for a different copy of the project. Select this copy's environment.
 
 **Choosing the notebook kernel.** The notebooks use the standard `python3` kernel, which means
 "the Python of the environment Jupyter runs in":
@@ -122,7 +140,8 @@ data/           raw download and parsed table (not committed)
 ```
 
 `CLAUDE.md` holds the working rules for the AI coding assistant used on this project. Its
-"non-negotiable rules" section is also the clearest summary of the evaluation protocol.
+"Evaluation rules" and "Exploration" sections are also the most detailed statement of the
+protocol summarized under "How we work".
 
 ## Hardware
 

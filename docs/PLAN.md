@@ -92,8 +92,9 @@ field or semi-empirical method). That is out of scope here. State it plainly as 
 - **Line 1:** number of atoms `na`.
 - **Line 2:** tab-separated properties, in this order: tag `gdb`, index, A, B, C, **mu (D)**,
   alpha, homo, lumo, gap, r2, zpve, U0, U, H, G, Cv.
-- **Lines 3 … na+2:** element, x, y, z (Å), Mulliken charge (e). The charge column is
-  **never** used as an input.
+- **Lines 3 … na+2:** element, x, y, z (Å), Mulliken charge (e). The charges are kept for
+  exploration (§11) but are not a headline input (CLAUDE.md, rule 1).
+- Line 2 starts `gdb 1` separated by a space, then tabs: split on any whitespace.
 - After the atoms: a harmonic-frequencies line, a SMILES line (GDB and relaxed), and an
   InChI line.
 - Some floats use a Fortran-style exponent such as `1.23*^-6`. Replace `*^` with `e` before
@@ -101,13 +102,16 @@ field or semi-empirical method). That is out of scope here. State it plainly as 
 
 ### 3.3 Parsed table
 
-Save to `data/processed/qm9.parquet` (or `.npz`) with these columns:
+Save to `data/processed/qm9.parquet` with these columns:
 - `id` (int, QM9 index)
-- `formula` (Hill order: C, H, then the rest alphabetically)
+- `formula` (C, H, then the rest alphabetically)
 - `n_atoms`, `n_heavy`
-- `Z` (int array), `R` (float array, Å)
-- `mu` (float, D)
-- `smiles` (for reference and plots only — never a feature)
+- `Z` (int array), `R` (float array, Å): **the headline inputs**
+- `mu` (float, D): **the target**
+- for exploration (§11): `q` (Mulliken charge per atom, e) and the other 14 properties
+  `A`, `B`, `C`, `alpha`, `homo`, `lumo`, `gap`, `r2`, `zpve`, `U0`, `U`, `H`, `G`, `Cv`
+  (units in `readme.txt`)
+- `smiles` (relaxed geometry; for reference and plots)
 
 ### 3.4 Exclusions
 
@@ -418,9 +422,12 @@ writeup.
 ## 10. Gotchas
 
 - **Leakage:**
-  - Mulliken charges and every QM9 property other than μ are off-limits as inputs.
+  - The other QM9 properties come from the same DFT calculation as μ. They may be used in
+    exploration, but any result that uses them is labeled and reported apart from the
+    headline comparison. A model fed Mulliken charges is answering "given the electron
+    density, what is μ?", not "given the structure, what is μ?".
   - Fitting the scaler, PCA or target scaling on anything beyond the current training set
-    also leaks.
+    leaks. This one is never acceptable, in headline or exploratory runs.
 - **Anchors limit the familiar set:** the number of familiar formulas must be below N1.
 - **Parsing:** convert the Fortran `*^` exponent before calling `float()`.
 - **Kernel matrices:**
@@ -439,12 +446,23 @@ writeup.
 
 ---
 
-## 11. Possible extensions (after M7)
+## 11. Exploration and extensions
 
+Exploration can start at any time once the data is parsed. It does not have to wait for M7.
+Label every exploratory result with the inputs it used (CLAUDE.md, "Exploration").
+
+- **What do the charges explain?** A point-charge estimate |Σᵢ qᵢ rᵢ| from the Mulliken
+  charges already tracks μ closely (r ≈ 0.95 on the first 5,000 molecules; about 0.37 D MAE
+  after a 2-parameter linear fit, against 1.21 D for the mean). It's a useful physics reference
+  and a natural "upper bound" story: how close does a structure-only model get to one that
+  knows the charges?
 - **Physics-informed charge model:**
-  - A quantum model predicts a partial charge per atom from its local environment.
+  - A quantum model predicts a partial charge per atom from its local environment, trained
+    with the Mulliken charges as an auxiliary target.
   - Charges are constrained to sum to zero, and the model outputs |Σᵢ qᵢ rᵢ|.
   - Invariance comes by construction, and it also yields the dipole vector.
+- **Other properties as auxiliary targets** (multi-task learning), e.g. polarizability α,
+  which is related to molecular size and charge distribution.
 - **Learning-curve theory:** use kernel eigenvalue spectra and kernel–target alignment to
   explain why one kernel learns faster per label.
 - **ML-based error mitigation** for the noisy-inference results.

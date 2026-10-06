@@ -1,11 +1,16 @@
 """QM9 raw data: download and integrity checks (M0), parsing and exclusions (M1).
 
 Source: Ramakrishnan et al., Scientific Data 1, 140022 (2014), figshare collection 978904.
-The 133,885-molecule tarball is streamed with `tarfile` and never extracted
-(see docs/DECISIONS.md, 2026-10-04). It is parsed once into data/processed/qm9.parquet,
-which every later milestone loads instead of the raw files.
+The 133,885-molecule tarball is streamed with `tarfile` rather than extracted. It is parsed
+once into data/processed/qm9.parquet, which every later milestone loads instead of the raw
+files.
 
-Units: coordinates R in Å, dipole magnitude mu in debye.
+The table keeps every field of every record. Headline models use only HEADLINE_INPUTS
+(atomic numbers and coordinates) to predict TARGET; the Mulliken charges and the other
+properties are kept for clearly labeled exploration (CLAUDE.md, "Exploration").
+
+Units: coordinates R in Å, dipole magnitude mu in debye, charges q in e; other properties as
+in readme.txt.
 """
 
 from __future__ import annotations
@@ -90,8 +95,8 @@ def fetch(raw: RawFile, dest_dir: Path = RAW_DIR, url: str | None = None) -> Pat
 
     if dest.exists():
         # Re-verify on every run (~0.3 s for the tarball): a file that verified when written
-        # can still change later (OneDrive sync conflicts, a teammate's copy). On a mismatch,
-        # fail loudly instead of re-downloading, so whatever changed the file gets noticed.
+        # can still change later (file-sync conflicts, a copied-in file, a manual edit). On a
+        # mismatch, fail loudly instead of re-downloading, so the cause gets noticed.
         try:
             verify(dest, raw)
         except ChecksumError as e:
@@ -138,9 +143,17 @@ ELEMENT_Z: dict[str, int] = {"H": 1, "C": 6, "N": 7, "O": 8, "F": 9}
 #: Formula element order (PLAN §3.3): C, H, then the rest alphabetically.
 FORMULA_ORDER: tuple[str, ...] = ("C", "H", "F", "N", "O")
 
-#: Line 2 holds "gdb", the index, then 15 properties; mu (debye) is property 6 (readme).
-_N_PROPERTY_TOKENS = 17
-_MU_TOKEN = 5
+#: The 15 properties on line 2 after "gdb" and the index, in readme order and with readme
+#: names: rotational constants A, B, C (GHz); dipole mu (D); polarizability alpha (bohr³);
+#: homo, lumo, gap (Hartree); r2 (bohr²); zpve, U0, U, H, G (Hartree); Cv (cal/mol K).
+PROPERTY_NAMES: tuple[str, ...] = (
+    "A", "B", "C", "mu", "alpha", "homo", "lumo", "gap", "r2", "zpve", "U0", "U", "H", "G", "Cv",
+)
+_N_PROPERTY_TOKENS = 2 + len(PROPERTY_NAMES)
+
+#: What the headline models may use (the brief: composition + geometry) and what they predict.
+HEADLINE_INPUTS: tuple[str, ...] = ("Z", "R")
+TARGET = "mu"
 
 
 def _float(token: str) -> float:
@@ -158,13 +171,14 @@ def hill_formula(elements: list[str]) -> str:
 
 
 def parse_xyz(text: str) -> dict:
-    """Parse one QM9 .xyz record.
+    """Parse one QM9 .xyz record, keeping every field.
 
     Returns id, formula, n_atoms, n_heavy, Z (int8 array), R (float array (n_atoms, 3), Å),
-    mu (debye) and smiles (of the relaxed geometry; for reference and plots only).
+    q (Mulliken charge per atom, e), the 15 PROPERTY_NAMES (mu in debye) and smiles (of the
+    relaxed geometry, for reference and plots).
 
-    The Mulliken-charge column and every property other than mu are deliberately dropped:
-    they come from the same DFT calculation as the label (CLAUDE.md rule 1).
+    Headline models use only HEADLINE_INPUTS. q and the other properties come from the same
+    DFT calculation as mu, so they are for labeled exploration (CLAUDE.md, rule 1).
     """
     lines = text.splitlines()
     n_atoms = int(lines[0])
@@ -181,6 +195,7 @@ def parse_xyz(text: str) -> dict:
     elements = [a[0] for a in atoms]
     Z = np.array([ELEMENT_Z[e] for e in elements], dtype=np.int8)
     R = np.array([[_float(x) for x in a[1:4]] for a in atoms], dtype=np.float64)
+    q = np.array([_float(a[4]) for a in atoms], dtype=np.float64)
 
     smiles_gdb, smiles_relaxed = lines[n_atoms + 3].split()
     return {
@@ -190,7 +205,8 @@ def parse_xyz(text: str) -> dict:
         "n_heavy": int((Z > 1).sum()),
         "Z": Z,
         "R": R,
-        "mu": _float(props[_MU_TOKEN]),
+        "q": q,
+        **{name: _float(tok) for name, tok in zip(PROPERTY_NAMES, props[2:])},
         "smiles": smiles_relaxed,
     }
 
@@ -228,11 +244,26 @@ def save_qm9_table(table: pd.DataFrame, path: Path = QM9_PARQUET) -> None:
 
 
 def load_qm9_table(path: Path = QM9_PARQUET) -> pd.DataFrame:
-    """Load the parsed table, restoring Z as int8 arrays and R as (n_atoms, 3) arrays in Å."""
+    """Load the parsed table: Z as int8 arrays, R as (n_atoms, 3) arrays in Å, q in e."""
     table = pd.read_parquet(path)
     table["Z"] = [np.asarray(z, dtype=np.int8) for z in table["Z"]]
     table["R"] = [np.asarray(r, dtype=np.float64).reshape(-1, 3) for r in table["R"]]
+    table["q"] = [np.asarray(q, dtype=np.float64) for q in table["q"]]
     return table
+
+
+def qm9_table_is_current(path: Path = QM9_PARQUET) -> bool:
+    """True if the parquet file exists and has exactly the columns the current parser writes.
+
+    A table built by an older parser (e.g. before q and the properties were kept) is stale
+    and must be rebuilt.
+    """
+    if not path.exists():
+        return False
+    import pyarrow.parquet as pq
+
+    expected = {"id", "formula", "n_atoms", "n_heavy", "Z", "R", "q", *PROPERTY_NAMES, "smiles"}
+    return set(pq.read_schema(path).names) == expected
 
 
 # --------------------------------------------------------------------------------------

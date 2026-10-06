@@ -1,11 +1,7 @@
 # Data: raw downloads and anything regenerated from them (see docs/DATA.md)
 data/raw/
-data/raw_extracted/
 data/processed/
 *.part
-
-# Original handoff bundle (canonical copies live in CLAUDE.md and docs/)
-Handoff files/
 
 # Python / tooling
 __pycache__/
