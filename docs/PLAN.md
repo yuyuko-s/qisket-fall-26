@@ -316,6 +316,24 @@ For the target backend, report:
 
 Tabulate for N ∈ {100, 300, 1000}.
 
+### 7.9 Quantum-feature linear ridge prototype (`models/quantum.py`)
+
+Implemented early at the team's request; this does not mark M4 complete or replace the
+fidelity benchmark above before validation comparisons.
+
+- Pipeline: training-fitted `StandardScaler` → Qiskit `zz_feature_map` with linear
+  entanglement → exact local Z expectations → scikit-learn `Ridge` on debye labels.
+- One qubit and one expectation feature per input column, intended for 4–8 input features.
+- `reps >= 2`: one phase-encoding layer has zero Z-only expectations; a second layer adds
+  mixing before readout. Defaults `reps=2`, `gamma=1.0`, `alpha=1.0` are untuned examples.
+- The equivalent linear projected kernel is `k(x, x') = phi(x) @ phi(x')`; Ridge also learns
+  an intercept. This is not the fidelity kernel in §7.2 or the RBF projected model in §7.7.
+- `QuantumRidgeRegressor` supports sklearn cloning/CV and clips negative predictions at zero
+  by default (§6.5). Upstream PCA must remain in the fold-fitted pipeline too.
+- `notebooks/02_quantum_regression.ipynb` is a rerunnable synthetic smoke check only. It
+  neither evaluates QM9 test sets nor submits hardware jobs; molecular benchmarking awaits
+  the team's descriptor/PCA inputs. No computational advantage is claimed at this scale.
+
 ---
 
 ## 8. Invariance checks

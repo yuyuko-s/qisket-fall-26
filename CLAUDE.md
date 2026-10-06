@@ -120,6 +120,7 @@ src/qm9dipole/
   splits.py        formula holdout, anchors, nested training sets
   descriptors.py   composition counts, Coulomb-matrix spectrum
   models/classical.py
+  models/quantum.py  fixed quantum-feature + linear ridge prototype (simulator only)
   models/quantum_kernel.py
   noise.py         finite-shot and noisy inference
   cost.py          quantum resource accounting
@@ -139,6 +140,7 @@ pip install -r requirements.txt     # only after activation (PYTHONNOUSERSITE; s
 pip check && pytest -q
 jupyter nbconvert --to notebook --execute --inplace notebooks/00_setup_and_data.ipynb   # M0: download + checks
 jupyter nbconvert --to notebook --execute --inplace notebooks/01_parse_and_splits.ipynb # M1: parquet + splits/
+jupyter nbconvert --to notebook --execute --inplace notebooks/02_quantum_regression.ipynb # synthetic quantum prototype, not M4 completion
 python scripts/final_eval.py --config configs/frozen.yaml  # M7: run once, at the end (not yet written)
 ```
 
