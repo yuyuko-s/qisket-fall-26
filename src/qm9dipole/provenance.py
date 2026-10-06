@@ -10,7 +10,11 @@ import warnings
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
+import pandas as pd
+
 from qm9dipole import REPO_ROOT
+
+RESULTS_DIR = REPO_ROOT / "results"
 
 #: Distributions whose versions are recorded with every results file.
 TRACKED_PACKAGES: tuple[str, ...] = (
@@ -58,6 +62,20 @@ def config_hash(config: dict) -> str:
     """Short, order-independent hash of a config dict (12 hex chars of SHA-256)."""
     canonical = json.dumps(config, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode()).hexdigest()[:12]
+
+
+def save_result(df: pd.DataFrame, name: str, out_dir: Path = RESULTS_DIR, **meta) -> Path:
+    """Write <out_dir>/<name>.csv and a <name>.meta.json sidecar with its provenance.
+
+    The sidecar records the git hash and package versions (CLAUDE.md conventions) plus any
+    `meta` keyword arguments, such as seeds and sample sizes. Returns the CSV path.
+    """
+    out_dir.mkdir(parents=True, exist_ok=True)
+    stamp = {"git_hash": git_hash(), "versions": package_versions(), **meta}
+    csv = out_dir / f"{name}.csv"
+    df.to_csv(csv, index=False)
+    (out_dir / f"{name}.meta.json").write_text(json.dumps(stamp, indent=1, default=str) + "\n")
+    return csv
 
 
 # --------------------------------------------------------------------------------------

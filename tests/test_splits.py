@@ -14,7 +14,7 @@ import pytest
 from qm9dipole.provenance import config_hash
 from qm9dipole.splits import (
     SPLITS_DIR, SplitCheckError, build_splits, check_splits, load_config, load_splits,
-    save_splits,
+    save_splits, training_pool,
 )
 
 CFG = {
@@ -77,6 +77,12 @@ def test_one_anchor_per_familiar_formula(splits, table):
     formula = table.set_index("id")["formula"]
     for a in splits.anchors.values():
         assert sorted(formula.loc[a]) == splits.familiar_formulas
+
+
+def test_training_pool_holds_every_training_set_and_no_test_molecule(splits, table):
+    P = set(training_pool(splits, table))
+    assert not P & (set(splits.test_unseen) | set(splits.test_familiar))
+    assert all(set(ids) <= P for by_n in splits.train.values() for ids in by_n.values())
 
 
 def test_rejects_more_familiar_formulas_than_smallest_n(table):

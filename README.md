@@ -31,8 +31,8 @@ dead ends are logged in `docs/DECISIONS.md`.
 |---|---|---|
 | M0 Environment and QM9 download | done | `notebooks/00_setup_and_data.ipynb` |
 | M1 Parser, exclusions, splits | done | `notebooks/01_parse_and_splits.ipynb` |
-| M2 Descriptors and invariance tests | next | |
-| M3 Classical baselines (CV only) | | |
+| M2 Descriptors and invariance tests | done | `notebooks/02_descriptors_invariance.ipynb` |
+| M3 Classical baselines (CV only) | next | |
 | M4 Quantum kernel ridge regression | | |
 | M5 Finite-shot and noisy inference | | |
 | M6 Representation ablation, quantum cost | | |
@@ -104,6 +104,7 @@ Run the notebooks in order. Each runs top to bottom and is safe to re-run.
 |---|---|---|
 | `00_setup_and_data.ipynb` | Downloads QM9 (86 MB) into `data/raw/` and verifies it against the published checksums | ~1 min |
 | `01_parse_and_splits.ipynb` | Parses all 133,885 molecules into `data/processed/qm9.parquet`, applies exclusions, rebuilds `splits/` | ~1 min |
+| `02_descriptors_invariance.ipynb` | Builds the descriptors, checks invariance to rotation, translation and atom reordering (with a negative control), writes `results/m2_descriptor_invariance.csv` | ~10 s |
 
 Splits are deterministic. Rebuilding them reproduces the committed `splits/*.json` molecule IDs
 exactly. Only the `git_hash` stamp changes.
@@ -113,6 +114,7 @@ To run everything without opening Jupyter:
 ```bash
 jupyter nbconvert --to notebook --execute --inplace notebooks/00_setup_and_data.ipynb
 jupyter nbconvert --to notebook --execute --inplace notebooks/01_parse_and_splits.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/02_descriptors_invariance.ipynb
 pytest -q
 ```
 
@@ -130,8 +132,10 @@ excluded molecules (with reasons), the working pool and the splits.
 
 ```
 notebooks/      one notebook per milestone (the entry points)
-src/qm9dipole/  all logic: data.py (download, parsing, exclusions), splits.py, provenance.py
-tests/          pytest suite, including negative controls for every split check
+src/qm9dipole/  all logic: data.py (download, parsing, exclusions), splits.py, descriptors.py,
+                invariance.py, provenance.py
+tests/          pytest suite, including negative controls for every split check and invariance test
+results/        result tables (CSV), each with a .meta.json provenance file
 configs/        splits.yaml (seeds and sizes; its hash is stamped into every split file)
 splits/         saved molecule-ID lists: test sets and nested training sets
 docs/           BRIEF.md (requirements), PLAN.md (design), DATA.md, DECISIONS.md (change log)

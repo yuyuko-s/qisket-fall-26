@@ -45,6 +45,19 @@ def test_aer_sampler_runs():
     assert np.isclose(counts["00"] / 200, 1.0)
 
 
+def test_save_result_writes_csv_and_provenance(tmp_path):
+    import json
+
+    import pandas as pd
+
+    from qm9dipole.provenance import save_result
+
+    path = save_result(pd.DataFrame({"a": [1, 2]}), "demo", out_dir=tmp_path, seed=7)
+    assert pd.read_csv(path)["a"].tolist() == [1, 2]
+    meta = json.loads((tmp_path / "demo.meta.json").read_text())
+    assert meta["seed"] == 7 and "git_hash" in meta and meta["versions"]["qiskit"].startswith("2.")
+
+
 # --- check_environment ---------------------------------------------------------------
 
 def test_pinned_versions_reads_requirements():

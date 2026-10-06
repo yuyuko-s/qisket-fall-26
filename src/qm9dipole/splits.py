@@ -144,6 +144,15 @@ def build_splits(table: pd.DataFrame, cfg: dict) -> Splits:
     )
 
 
+def training_pool(s: Splits, table: pd.DataFrame) -> np.ndarray:
+    """Sorted IDs of the training pool P: pool molecules whose formula is not unseen and
+    which are not in the familiar test set. Every training set is drawn from P, so analyses
+    restricted to P never touch test molecules."""
+    pool = table[table["id"].isin(s.pool)]
+    keep = ~pool["formula"].isin(s.unseen_formulas) & ~pool["id"].isin(s.test_familiar)
+    return np.sort(pool.loc[keep, "id"].to_numpy())
+
+
 def check_splits(s: Splits, table: pd.DataFrame, excluded_ids: set[int] | frozenset[int]) -> None:
     """Raise SplitCheckError unless PLAN §4 asserts (a)–(g) hold, plus (h) test-set formulas.
 
