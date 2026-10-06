@@ -1,0 +1,10 @@
+descriptor,transform,n_molecules,mean_change,max_change,invariant
+composition,rotation,100,0.0,0.0,True
+composition,translation,100,0.0,0.0,True
+composition,permutation,100,0.0,0.0,True
+cm_spectrum,rotation,100,5.4143356464919635e-14,1.4210854715202004e-13,True
+cm_spectrum,translation,100,5.687894599759603e-14,1.7053025658242404e-13,True
+cm_spectrum,permutation,100,7.243983191074222e-14,1.7053025658242404e-13,True
+raw_coordinates,rotation,100,5.6959598306192705,11.58271858925374,False
+raw_coordinates,translation,100,6.985255792175742,9.976995817588612,False
+raw_coordinates,permutation,100,4.842874961894,9.5275792918,False
