@@ -7,6 +7,15 @@ How to use this document:
   reason, *before* looking at any test-set result.
 - If anything here conflicts with `docs/BRIEF.md`, the brief wins.
 
+> **Two tracks (exploration X2, 2026-10-06; CLAUDE.md "Two tracks").** This plan's defaults were
+> set around the quantum model's cost: N ≤ 1000, 25 molecules per formula, small test sets,
+> k = 8 inputs, the brief's minimum model list, small fixed grids. They now apply to
+> **Track B** (quantum-comparable baselines) at most. **Track A** (the most accurate classical
+> model from Z and R) comes first and makes every choice for accuracy: training sets up to the
+> full training pool, large test sets, rich per-atom representations, physics-structured
+> models, and searched hyperparameters. Sections changed by X2 say so; the rest stands.
+> DECISIONS.md records each change.
+
 ---
 
 ## 1. Background
@@ -123,15 +132,24 @@ Record each rule in `docs/DATA.md` with its count and reason:
 
 ### 3.5 Working subset
 
-Build a documented, manageable, formula-diverse pool:
-- **Default:** from the remaining molecules, keep at most 25 per formula, sampled randomly
-  within each formula using the split seed.
-- Report the number of formulas and molecules, the heavy-atom-count distribution, and a μ
-  histogram.
+**Superseded by X2:** there is no per-formula cap. Every kept molecule is used, except that
+geometric duplicates (the same molecule listed twice) keep one copy. The cap discarded 94% of
+QM9 and changed its distribution (the top 20 of 616 formulas hold 53% of the molecules).
+
+Originally: from the remaining molecules, keep at most 25 per formula, sampled randomly
+within each formula using the split seed.
 
 ---
 
 ## 4. Splits (`src/qm9dipole/splits.py`)
+
+> **Redesigned by X2** (details in DECISIONS.md and `configs/splits.yaml`): whole unseen formulas
+> are evaluated on all their molecules; the familiar test set is a large random sample; a
+> development set and development-only unseen formulas support model development without the
+> test sets; the training pool is everything else (≈ 95k molecules); nested training sets run
+> from 100 to the full pool; small fixed subsets of each test set, with anchors for the familiar
+> one, serve the quantum model. The procedure and asserts below describe the original design;
+> the asserts carry over to the new one.
 
 Seeds: a fixed **split seed** (**default** 2026) defines the test sets. **Training seeds**
 s ∈ {0, 1, 2} define the training sets (add 3 and 4 if cheap).
@@ -188,8 +206,9 @@ Notes:
      spectrum is also invariant to atom permutation.
 3. **Variants:**
    - `full` — the 29-dim spectrum (classical models only);
-   - `compressed` — PCA(k) on the standardized spectrum, **default** k = 8 = number of
-     qubits, fit on S_{s,N} only;
+   - `compressed` — PCA(k) on the standardized spectrum, fit on S_{s,N} only. **X2:** k and
+     the reduction method (PCA, partial least squares, top features) are chosen by CV inside
+     the training sets, not fixed at k = 8 = number of qubits;
    - `composition` — 5-dim, used by classical models and by the quantum model on 5 qubits;
    - optional: composition combined with the compressed spectrum.
 4. **Scaling:** fit `StandardScaler` on the training set. Quantum rotation angles are
@@ -198,6 +217,12 @@ Notes:
 ---
 
 ## 6. Models
+
+> **X2:** the models below are the brief's minimum and remain Track B baselines. Track A adds
+> physics-structured models (a latent-charge model that predicts a charge per atom from its
+> local environment and outputs |Σ qᵢ rᵢ|; see §11), gradient boosting with a randomized search
+> and early stopping, and kernel ridge on richer representations. At large N, tuning uses a
+> validation split inside the training set instead of 5-fold CV.
 
 Shared protocol, for every (seed, N, representation, variant):
 - fit all transforms on S only;
@@ -367,7 +392,8 @@ Columns: `run_id`, `git_hash`, `config_hash`, `seed`, `n_train`, `model`, `repre
 3. QKRR error vs. shots (exact, 10⁴, 10³, 10²), with the noisy-simulation points.
 4. Tables:
    - main results at N = 1000;
-   - paired differences (QKRR − RBF-compressed) per seed;
+   - paired differences (QKRR − RBF-compressed) per seed, **always next to** QKRR − best
+     Track A model (X2): the matched comparison alone overstates the quantum model;
    - invariance results;
    - quantum cost.
 5. Optional: kernel-concentration plot.

@@ -12,9 +12,25 @@ molecular formulas, and quantum cost.
 
 Beating classical ML is **not** required. Fair comparisons and an honest conclusion are.
 
+## Two tracks: accuracy first (exploration X2, 2026-10-06)
+
+The user's directive, which overrides PLAN.md defaults wherever they conflict:
+- **Track A (accurate) comes first:** the most accurate and robust classical model that can be
+  built from Z and R. Splits, training size (up to the full training pool), features, scaling,
+  dimensionality, hyperparameters and model family are chosen for accuracy, with no regard for
+  what a quantum computer can handle.
+- **Track B (quantum-comparable) comes second:** the same pipeline scaled down (N ≤ 1000, a few
+  inputs chosen by CV) to give matched baselines for the quantum model.
+- Report every quantum result against **both**. Never present Track B as the best classical can do.
+
+PLAN.md values that were set for the quantum model (N ≤ 1000, 25 molecules per formula, small
+test sets, k = 8 inputs, the brief's minimum model list, small fixed grids) are Track B
+settings at most. The evaluation rules below still apply to both tracks.
+
 - Full requirements: `docs/BRIEF.md` (imported below — the brief wins any conflict).
 - Design, defaults and milestone acceptance criteria: `docs/PLAN.md`. Read the relevant
-  section before starting each milestone.
+  section before starting each milestone; where it conflicts with the two-track directive
+  above, the directive wins.
 - Log every design change in `docs/DECISIONS.md` (date, change, reason). Decisions must be
   made before looking at test-set results.
 
@@ -38,15 +54,19 @@ Beating classical ML is **not** required. Fair comparisons and an honest conclus
    reported separately and names the properties it used. They come from the same DFT
    calculation as μ, so they answer a different question from the brief's.
 2. **Test sets are never used for any choice** — no hyperparameters, feature choices, model
-   selection or early stopping. Tune with cross-validation inside the training set only.
+   selection or early stopping. Tune with cross-validation or a validation split inside the
+   training data only. The development sets in `splits/` (`dev`, `dev_unseen`) are training
+   data held out for development; the test sets (`test_*`) are not.
    Test metrics are produced once, by `scripts/final_eval.py`, after configs are frozen.
 3. **Every fitted transform is fit on the current training set only** (standardization, PCA,
    target scaling, bandwidth heuristics) and refit for every (training size, seed).
-4. **Unseen-formula molecules never appear** in any training set or CV fold.
-5. **Every familiar test formula has an anchor** (≥1 molecule) in the smallest training set,
-   and therefore in all nested sets.
-6. **Nested training sets** (N1 ⊂ N2 ⊂ N3), ≥3 sizes × ≥3 seeds, identical subsets for every
-   model (paired comparison).
+4. **Unseen-formula molecules never appear** in any training set or CV fold (neither the test
+   holdout formulas nor the development holdout formulas).
+5. **Every formula of the quantum familiar test subset has an anchor** (≥1 molecule) in the
+   smallest training set, and therefore in all nested sets. For the large familiar test set,
+   "familiar at size N" means the formula is in that training set.
+6. **Nested training sets** (N1 ⊂ N2 ⊂ … ⊂ full pool), ≥3 sizes × ≥3 seeds, identical subsets
+   for every model (paired comparison).
 7. **Splits are saved as QM9 molecule IDs** with the seed and config that produced them.
    Exclusions are documented with counts and reasons in `docs/DATA.md`.
 8. **Predictions are in debye.** Any bounded circuit output (e.g. ⟨Z⟩ ∈ [−1, 1]) is mapped to
@@ -179,7 +199,8 @@ python scripts/final_eval.py --config configs/frozen.yaml  # M7: run once, at th
 | M0 | Environment setup and QM9 download | done 2026-10-04 (`notebooks/00_setup_and_data.ipynb`) |
 | M1 | Parser, exclusions and split builder (with asserts) | done 2026-10-05 (`notebooks/01_parse_and_splits.ipynb`); open: anchor-skew review (DECISIONS.md) |
 | M2 | Descriptors and invariance tests (including the negative control) | done 2026-10-05 (`notebooks/02_descriptors_invariance.ipynb`) |
-| X1 | Exploration: classical statistical analysis before any quantum work (EDA → cleaning → features → scaling → models, `notebooks/explore_01..05`) | done 2026-10-06 |
+| X1 | Exploration: classical statistical analysis before any quantum work (EDA → cleaning → features → scaling → models, `notebooks/explore_01..05`) | done 2026-10-06; superseded by X2 |
+| X2 | Exploration: classical rebuild for accuracy (Track A), then quantum-comparable baselines (Track B); new splits, per-atom features, latent-charge model, learning curves to the full pool (`notebooks/01`, `explore_01..05` rerun) | in progress |
 | M3 | Classical baselines and learning-curve harness (CV metrics only) | |
 | M4 | Quantum kernel ridge regression (statevector) | |
 | M5 | Finite-shot and noisy inference | |

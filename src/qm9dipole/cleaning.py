@@ -73,6 +73,15 @@ def duplicate_groups(ids: np.ndarray, formulas: pd.Series | np.ndarray, spectra:
     return first.rename("duplicate_of").sort_index()
 
 
+def duplicate_extras(ids: np.ndarray, formulas: pd.Series | np.ndarray, spectra: np.ndarray,
+                     decimals: int = 2) -> frozenset[int]:
+    """IDs to exclude so that every duplicate group keeps exactly one molecule, its smallest
+    ID. Dropping the extra copies before splitting means no molecule can sit in two sets
+    (exploration X2; DECISIONS.md)."""
+    group = duplicate_groups(ids, formulas, spectra, decimals)
+    return frozenset(int(i) for i, first in group.items() if i != first)
+
+
 def zero_variance(frame: pd.DataFrame) -> list[str]:
     """Columns with a single distinct value."""
     return [c for c in frame.columns if frame[c].nunique(dropna=False) <= 1]
