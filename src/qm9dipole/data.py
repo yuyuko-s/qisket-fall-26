@@ -155,6 +155,12 @@ _N_PROPERTY_TOKENS = 2 + len(PROPERTY_NAMES)
 HEADLINE_INPUTS: tuple[str, ...] = ("Z", "R")
 TARGET = "mu"
 
+#: Every column of the parsed table, i.e. every field of a QM9 record plus bookkeeping.
+TABLE_COLUMNS: tuple[str, ...] = (
+    "id", "formula", "n_atoms", "n_heavy", "Z", "R", "q", *PROPERTY_NAMES,
+    "freqs", "smiles", "smiles_gdb", "inchi", "inchi_gdb",
+)
+
 
 def _float(token: str) -> float:
     """Parse a QM9 float. A few coordinates use a Fortran exponent, e.g. "2.1997*^-6"."""
@@ -173,12 +179,14 @@ def hill_formula(elements: list[str]) -> str:
 def parse_xyz(text: str) -> dict:
     """Parse one QM9 .xyz record, keeping every field.
 
-    Returns id, formula, n_atoms, n_heavy, Z (int8 array), R (float array (n_atoms, 3), Å),
-    q (Mulliken charge per atom, e), the 15 PROPERTY_NAMES (mu in debye) and smiles (of the
-    relaxed geometry, for reference and plots).
+    Returns TABLE_COLUMNS: id, formula, n_atoms, n_heavy, Z (int8 array), R (float array
+    (n_atoms, 3), Å), q (Mulliken charge per atom, e), the 15 PROPERTY_NAMES (mu in debye),
+    freqs (harmonic vibrational frequencies, cm⁻¹, exactly as listed in the file), smiles
+    and inchi (of the relaxed geometry) and smiles_gdb and inchi_gdb (of the GDB-17 input).
+    Values are kept as found; cleaning (e.g. of doubled frequency lists) is a later step.
 
-    Headline models use only HEADLINE_INPUTS. q and the other properties come from the same
-    DFT calculation as mu, so they are for labeled exploration (CLAUDE.md, rule 1).
+    Headline models use only HEADLINE_INPUTS. q, freqs and the other properties come from
+    the same DFT calculation as mu, so they are for labeled exploration (CLAUDE.md, rule 1).
     """
     lines = text.splitlines()
     n_atoms = int(lines[0])
@@ -197,7 +205,9 @@ def parse_xyz(text: str) -> dict:
     R = np.array([[_float(x) for x in a[1:4]] for a in atoms], dtype=np.float64)
     q = np.array([_float(a[4]) for a in atoms], dtype=np.float64)
 
+    freqs = np.array([_float(tok) for tok in lines[n_atoms + 2].split()], dtype=np.float64)
     smiles_gdb, smiles_relaxed = lines[n_atoms + 3].split()
+    inchi_gdb, inchi_relaxed = lines[n_atoms + 4].split()
     return {
         "id": int(props[1]),
         "formula": hill_formula(elements),
@@ -207,7 +217,11 @@ def parse_xyz(text: str) -> dict:
         "R": R,
         "q": q,
         **{name: _float(tok) for name, tok in zip(PROPERTY_NAMES, props[2:])},
+        "freqs": freqs,
         "smiles": smiles_relaxed,
+        "smiles_gdb": smiles_gdb,
+        "inchi": inchi_relaxed,
+        "inchi_gdb": inchi_gdb,
     }
 
 
@@ -244,26 +258,27 @@ def save_qm9_table(table: pd.DataFrame, path: Path = QM9_PARQUET) -> None:
 
 
 def load_qm9_table(path: Path = QM9_PARQUET) -> pd.DataFrame:
-    """Load the parsed table: Z as int8 arrays, R as (n_atoms, 3) arrays in Å, q in e."""
+    """Load the parsed table: Z as int8 arrays, R as (n_atoms, 3) arrays in Å, q in e,
+    freqs in cm⁻¹."""
     table = pd.read_parquet(path)
     table["Z"] = [np.asarray(z, dtype=np.int8) for z in table["Z"]]
     table["R"] = [np.asarray(r, dtype=np.float64).reshape(-1, 3) for r in table["R"]]
-    table["q"] = [np.asarray(q, dtype=np.float64) for q in table["q"]]
+    for col in ("q", "freqs"):
+        table[col] = [np.asarray(v, dtype=np.float64) for v in table[col]]
     return table
 
 
 def qm9_table_is_current(path: Path = QM9_PARQUET) -> bool:
     """True if the parquet file exists and has exactly the columns the current parser writes.
 
-    A table built by an older parser (e.g. before q and the properties were kept) is stale
-    and must be rebuilt.
+    A table built by an older parser (e.g. before the frequencies and InChIs were kept) is
+    stale and must be rebuilt.
     """
     if not path.exists():
         return False
     import pyarrow.parquet as pq
 
-    expected = {"id", "formula", "n_atoms", "n_heavy", "Z", "R", "q", *PROPERTY_NAMES, "smiles"}
-    return set(pq.read_schema(path).names) == expected
+    return set(pq.read_schema(path).names) == set(TABLE_COLUMNS)
 
 
 # --------------------------------------------------------------------------------------

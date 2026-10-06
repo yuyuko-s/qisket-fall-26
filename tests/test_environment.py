@@ -45,6 +45,33 @@ def test_aer_sampler_runs():
     assert np.isclose(counts["00"] / 200, 1.0)
 
 
+def test_git_hash_ignores_outputs_but_not_inputs(tmp_path):
+    import subprocess
+
+    from qm9dipole.provenance import git_hash
+
+    def git(*args):
+        subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", *args], cwd=tmp_path,
+                       check=True, capture_output=True)
+
+    git("init", "-q")
+    (tmp_path / "src.py").write_text("x = 1\n")
+    (tmp_path / "results").mkdir()
+    (tmp_path / "results" / "r.csv").write_text("a\n")
+    git("add", ".")
+    git("commit", "-q", "-m", "init")
+    assert not git_hash(repo=tmp_path).endswith("-dirty")
+    (tmp_path / "results" / "r.csv").write_text("b\n")       # a run rewrote an output
+    (tmp_path / "figures").mkdir()
+    (tmp_path / "figures" / "f.png").write_text("png")       # and added a new one
+    assert not git_hash(repo=tmp_path).endswith("-dirty")
+    (tmp_path / "new_module.py").write_text("y = 2\n")       # untracked code is an input
+    assert git_hash(repo=tmp_path).endswith("-dirty")
+    (tmp_path / "new_module.py").unlink()
+    (tmp_path / "src.py").write_text("x = 2\n")              # so is an edit to tracked code
+    assert git_hash(repo=tmp_path).endswith("-dirty")
+
+
 def test_save_result_writes_csv_and_provenance(tmp_path):
     import json
 

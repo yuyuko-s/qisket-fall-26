@@ -1,0 +1,28 @@
+# Exploration chain (notebooks/explore_0*): settings every notebook reads, so a change here
+# flows through all later steps. Values follow from the EDA (explore_01); reasons are logged
+# in docs/DECISIONS.md. Nothing here is chosen on a test set.
+
+cleaning:
+  # Geometric duplicates (the same molecule listed twice): formula + Coulomb spectrum rounded
+  # to this many decimals. Analyses over the training pool keep one molecule per group.
+  duplicate_cm_decimals: 2
+  # Of two features with |Spearman rho| >= this (the same information up to a monotone
+  # transform), keep the one earlier in priority order. Unsupervised: never looks at mu.
+  redundancy_spearman: 0.99
+
+standardization:
+  # Feature scalings compared by CV in explore_03 (see src/qm9dipole/preprocess.py).
+  candidates: [standard, robust, log_standard, yeo_johnson, quantile_normal]
+  # log_standard: signed log1p on columns whose training-set |skewness| exceeds this.
+  skew_threshold: 1.0
+  # Scale-sensitive models used to choose a scaling (trees are invariant to monotone maps).
+  compare_models: [ridge, rbf_krr]
+  # Target transforms compared by CV in explore_03; predictions are always in debye.
+  target_candidates: [standard, sqrt, log1p]
+
+quantum:
+  # The compressed variant keeps one principal component per qubit.
+  n_qubits: 8
+  # Report the share of scaled feature values beyond +-this many standard deviations:
+  # rotation angles gamma * x wrap around, so far outliers alias onto ordinary values.
+  angle_sigma: 3

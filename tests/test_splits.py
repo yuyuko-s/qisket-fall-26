@@ -196,3 +196,27 @@ def test_saved_splits_are_current_and_valid():
     rules = exclusion_rules(cfg["exclude_readme_flagged"])
     excluded = frozenset().union(*rules.values())
     check_splits(s, table, excluded)
+
+
+@pytest.mark.skipif(not (SPLITS_DIR / "meta.json").exists(), reason="splits/ not built yet")
+def test_no_duplicate_molecule_leaks_across_saved_sets():
+    # QM9 lists a few molecules twice (identical geometry and μ; explore_01 §3). A twin in
+    # the same training set would leak across CV folds, and one in a test set would leak
+    # into the final evaluation. Geometry only: no label is read.
+    from qm9dipole.cleaning import duplicate_groups
+    from qm9dipole.data import QM9_PARQUET, load_qm9_table
+    from qm9dipole.descriptors import cm_spectrum
+
+    if not QM9_PARQUET.exists():
+        pytest.skip("data/processed/qm9.parquet not built")
+    s = load_splits()
+    every = np.unique(np.concatenate([s.pool, s.test_unseen, s.test_familiar]))
+    t = load_qm9_table().set_index("id").loc[every]
+    spectra = np.stack([cm_spectrum(z, r) for z, r in zip(t["Z"], t["R"])])
+    group = duplicate_groups(t.index.to_numpy(), t["formula"], spectra)
+    test_groups = set(group.reindex(np.r_[s.test_unseen, s.test_familiar]).dropna())
+    for seed, by_n in s.train.items():
+        for n, ids in by_n.items():
+            g = group.reindex(ids).dropna()
+            assert not g.duplicated().any(), f"S_({seed},{n}) holds both copies of a duplicate"
+            assert not set(g) & test_groups, f"S_({seed},{n}) shares a molecule with a test set"

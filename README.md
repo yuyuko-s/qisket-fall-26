@@ -32,6 +32,7 @@ dead ends are logged in `docs/DECISIONS.md`.
 | M0 Environment and QM9 download | done | `notebooks/00_setup_and_data.ipynb` |
 | M1 Parser, exclusions, splits | done | `notebooks/01_parse_and_splits.ipynb` |
 | M2 Descriptors and invariance tests | done | `notebooks/02_descriptors_invariance.ipynb` |
+| X1 Classical statistical analysis (exploration): EDA → cleaning and features → scaling and effective dimension → models and effective parameters → new-formula generalization | done | `notebooks/explore_01` … `explore_05` |
 | M3 Classical baselines (CV only) | next | |
 | M4 Quantum kernel ridge regression | | |
 | M5 Finite-shot and noisy inference | | |
@@ -109,6 +110,18 @@ Run the notebooks in order. Each runs top to bottom and is safe to re-run.
 Splits are deterministic. Rebuilding them reproduces the committed `splits/*.json` molecule IDs
 exactly. Only the `git_hash` stamp changes.
 
+**Exploration X1**, a classical statistical analysis done before any quantum model, is a chain.
+Each notebook reads the previous one's output (`src/qm9dipole/explore.py`), so run them in order.
+Its thresholds live in `configs/explore.yaml`. It uses the training pool and training sets only.
+
+| Notebook | What it does | Time |
+|---|---|---|
+| `explore_01_eda.ipynb` | Exploratory data analysis of every QM9 field: roles (headline-legal vs DFT output), integrity, duplicates, distributions, information about \|μ\|, redundancy, outliers; writes recommendations | ~30 s |
+| `explore_02_cleaning_and_features.ipynb` | Acts on the EDA: record- and feature-level cleaning, engineered features (bond dipoles, bond orders, rings, inertia), feature catalog | ~20 s |
+| `explore_03_standardization_and_dimension.ipynb` | Chooses feature scaling and target transform by CV; PCA and the cost of 8-component compression; effective dimension of the inputs | ~40 min |
+| `explore_04_classical_models.ipynb` | Mean, linear, ridge, RBF kernel ridge, random forest, XGBoost learning curves; effective number of parameters of each fitted model | ~40 min |
+| `explore_05_generalization_and_diagnostics.ipynb` | Formula-grouped CV (new formulas), error structure, permutation importance | ~10 min |
+
 To run everything without opening Jupyter:
 
 ```bash
@@ -116,6 +129,10 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/00_setup_and_data.
 jupyter nbconvert --to notebook --execute --inplace notebooks/01_parse_and_splits.ipynb
 jupyter nbconvert --to notebook --execute --inplace notebooks/02_descriptors_invariance.ipynb
 pytest -q
+# exploration X1, in order (long ones need no cell timeout):
+for nb in explore_01_eda explore_02_cleaning_and_features explore_03_standardization_and_dimension           explore_04_classical_models explore_05_generalization_and_diagnostics; do
+  jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1 notebooks/$nb.ipynb
+done
 ```
 
 The final test-set evaluation (M7) will be a single script, `scripts/final_eval.py`, run once on
@@ -131,12 +148,14 @@ excluded molecules (with reasons), the working pool and the splits.
 ## Repository layout
 
 ```
-notebooks/      one notebook per milestone (the entry points)
+notebooks/      one notebook per milestone (the entry points); explore_* for exploration X1
 src/qm9dipole/  all logic: data.py (download, parsing, exclusions), splits.py, descriptors.py,
-                invariance.py, provenance.py
+                features.py, invariance.py, provenance.py; eda.py, cleaning.py, preprocess.py,
+                complexity.py, evaluate.py, analysis.py, explore.py, plots.py, models/
 tests/          pytest suite, including negative controls for every split check and invariance test
 results/        result tables (CSV), each with a .meta.json provenance file
-configs/        splits.yaml (seeds and sizes; its hash is stamped into every split file)
+configs/        splits.yaml (seeds and sizes; its hash is stamped into every split file),
+                explore.yaml (exploration thresholds)
 splits/         saved molecule-ID lists: test sets and nested training sets
 docs/           BRIEF.md (requirements), PLAN.md (design), DATA.md, DECISIONS.md (change log)
 figures/        generated figures

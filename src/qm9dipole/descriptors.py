@@ -8,6 +8,8 @@
   depend on the order of the atoms, so it is also invariant to relabeling.
 - raw_coordinates: flattened, zero-padded coordinates. Deliberately NOT invariant: it is the
   negative control that the invariance tests must catch (PLAN §8.3).
+- engineered: physics-motivated geometry, bond and polarity features (exploration; defined
+  in `qm9dipole.features`, names in `features.ENGINEERED_NAMES`).
 
 Fitted transforms (standardization, PCA for the 8-qubit "compressed" variant) are not here:
 they must be fit on each training set, so they live in the model pipelines (M3+).
@@ -21,6 +23,8 @@ from collections.abc import Callable
 
 import numpy as np
 import pandas as pd
+
+from qm9dipole.features import ENGINEERED_NAMES, engineered
 
 ANGSTROM_TO_BOHR = 1.8897261
 MAX_ATOMS = 29  # largest QM9 molecule, hydrogens included
@@ -72,13 +76,34 @@ DESCRIPTORS: dict[str, Callable[[np.ndarray, np.ndarray], np.ndarray]] = {
     "composition": composition,
     "cm_spectrum": cm_spectrum,
     "raw_coordinates": raw_coordinates,
+    "engineered": engineered,
 }
 
 #: The descriptors models may use. raw_coordinates exists only as the negative control.
-MODEL_DESCRIPTORS: tuple[str, ...] = ("composition", "cm_spectrum")
+MODEL_DESCRIPTORS: tuple[str, ...] = ("composition", "cm_spectrum", "engineered")
 
 
 def featurize(table: pd.DataFrame, name: str) -> np.ndarray:
     """Descriptor matrix (n_molecules × d) for the rows of `table`, in row order."""
     fn = DESCRIPTORS[name]
     return np.stack([fn(z, r) for z, r in zip(table["Z"], table["R"])])
+
+
+def feature_names(name: str) -> list[str]:
+    """Column names of descriptor `name`, in vector order."""
+    match name:
+        case "composition":
+            return [f"n_{e}" for e in COMPOSITION_ELEMENTS]
+        case "cm_spectrum":
+            return [f"cm_{k:02d}" for k in range(1, MAX_ATOMS + 1)]
+        case "raw_coordinates":
+            return [f"{axis}_{k:02d}" for k in range(1, MAX_ATOMS + 1) for axis in "xyz"]
+        case "engineered":
+            return list(ENGINEERED_NAMES)
+    raise KeyError(f"unknown descriptor {name!r}")
+
+
+def feature_frame(table: pd.DataFrame, name: str) -> pd.DataFrame:
+    """`featurize` as a DataFrame indexed by molecule ID, with named columns."""
+    return pd.DataFrame(featurize(table, name), columns=feature_names(name),
+                        index=pd.Index(table["id"].to_numpy(), name="id"))

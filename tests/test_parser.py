@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from qm9dipole.data import (
-    HEADLINE_INPUTS, PROPERTY_NAMES, TARBALL, TARGET, hill_formula, iter_tarball,
+    HEADLINE_INPUTS, TABLE_COLUMNS, TARBALL, TARGET, hill_formula, iter_tarball,
     load_qm9_table, parse_xyz, qm9_table_is_current, save_qm9_table,
 )
 
@@ -40,9 +40,17 @@ def test_parses_methane():
     assert m["smiles"] == "C"
 
 
+def test_keeps_every_field_of_the_record():
+    m = parse_xyz(METHANE)
+    assert set(m) == set(TABLE_COLUMNS)
+    # Frequencies: 3·5 − 6 = 9 vibrational modes for non-linear methane, in cm⁻¹.
+    assert m["freqs"].shape == (9,) and m["freqs"][0] == pytest.approx(1341.307)
+    assert (m["smiles_gdb"], m["smiles"]) == ("C", "C")
+    assert m["inchi"] == m["inchi_gdb"] == "InChI=1S/CH4/h1H4"
+
+
 def test_keeps_charges_and_all_properties_for_exploration():
     m = parse_xyz(METHANE)
-    assert set(m) == {"id", "formula", "n_atoms", "n_heavy", "Z", "R", "q", *PROPERTY_NAMES, "smiles"}
     assert m["q"] == pytest.approx([-0.535689, 0.133921, 0.133922, 0.133923, 0.133923])
     assert abs(m["q"].sum()) < 1e-5  # neutral molecule
     assert -0.535689 not in m["R"]  # charges are not folded into the coordinates
@@ -94,8 +102,9 @@ def test_parquet_round_trip(tmp_path):
     assert back["id"].tolist() == [1, 2]
     for a, b in zip(table["R"], back["R"]):
         np.testing.assert_array_equal(a, b)  # bit-exact, shape (n, 3) restored
-    for a, b in zip(table["q"], back["q"]):
-        np.testing.assert_array_equal(a, b)
+    for col in ("q", "freqs"):
+        for a, b in zip(table[col], back[col]):
+            np.testing.assert_array_equal(a, b)
     assert back["Z"][0].dtype == np.int8
     assert qm9_table_is_current(path)
 
@@ -103,7 +112,7 @@ def test_parquet_round_trip(tmp_path):
 def test_table_from_older_parser_is_stale(tmp_path):
     import pandas as pd
 
-    table = pd.DataFrame([parse_xyz(METHANE)]).drop(columns=["q", "alpha"])
+    table = pd.DataFrame([parse_xyz(METHANE)]).drop(columns=["freqs", "inchi"])
     path = tmp_path / "old.parquet"
     save_qm9_table(table, path)
     assert not qm9_table_is_current(path)
@@ -114,6 +123,7 @@ def test_table_from_older_parser_is_stale(tmp_path):
 def test_first_molecules_from_tarball():
     first = [parse_xyz(text) for _, text in itertools.islice(iter_tarball(), 3)]
     assert [m["formula"] for m in first] == ["CH4", "H3N", "H2O"]
+    assert [len(m["freqs"]) for m in first] == [9, 6, 3]  # 3n − 6 vibrational modes
     assert first[0]["mu"] == 0.0           # methane: bond dipoles cancel by symmetry
     assert 1.0 < first[1]["mu"] < 2.5      # ammonia is polar
     assert 1.0 < first[2]["mu"] < 2.5      # water is polar (experiment ≈ 1.85 D)

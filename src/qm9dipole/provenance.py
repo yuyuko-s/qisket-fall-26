@@ -28,6 +28,7 @@ TRACKED_PACKAGES: tuple[str, ...] = (
     "pyarrow",
     "matplotlib",
     "pyyaml",
+    "xgboost",
     "pytest",
 )
 
@@ -43,18 +44,27 @@ def package_versions() -> dict[str, str]:
     return out
 
 
-def git_hash(short: bool = False) -> str:
-    """Return the current commit hash, with "-dirty" appended if the tree has changes.
+#: Directories that hold what runs write. Changes there are outputs, not inputs, and every
+#: file in them records its own stamp, so they do not make the tree "dirty". Anything else
+#: uncommitted (code, configs, notebooks, untracked files) does.
+OUTPUT_DIRS: tuple[str, ...] = ("results", "figures", "splits")
 
-    Returns "nocommit" before the first commit and "nogit" outside a repository.
+
+def git_hash(short: bool = False, repo: Path = REPO_ROOT) -> str:
+    """Return the current commit hash, with "-dirty" appended if anything outside
+    OUTPUT_DIRS has uncommitted changes.
+
+    Without the exclusion, a notebook's second saved result would always be stamped dirty
+    by its first, and so would every notebook run after another. Returns "nocommit" before
+    the first commit and "nogit" outside a repository.
     """
     def run(*args: str) -> subprocess.CompletedProcess[str]:
-        return subprocess.run(["git", *args], cwd=REPO_ROOT, capture_output=True, text=True)
+        return subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True)
 
     head = run("rev-parse", "--short" if short else "--verify", "HEAD")
     if head.returncode != 0:
         return "nogit" if run("rev-parse", "--git-dir").returncode != 0 else "nocommit"
-    dirty = run("status", "--porcelain").stdout.strip()
+    dirty = run("status", "--porcelain", "--", ".", *(f":(exclude){d}" for d in OUTPUT_DIRS)).stdout.strip()
     return head.stdout.strip() + ("-dirty" if dirty else "")
 
 

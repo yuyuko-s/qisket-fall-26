@@ -37,8 +37,9 @@ Observations from M0:
   |---|---|
   | Headline inputs | `Z` (atomic numbers), `R` (Å; stored flattened, restored to (n, 3) by `load_qm9_table`) |
   | Target | `mu` (debye) |
-  | Exploration only, reported separately (CLAUDE.md rule 1) | `q` (Mulliken charges, e); `A`, `B`, `C`, `alpha`, `homo`, `lumo`, `gap`, `r2`, `zpve`, `U0`, `U`, `H`, `G`, `Cv` (units in `readme.txt`) |
-  | Bookkeeping | `id`, `formula`, `n_atoms`, `n_heavy`, `smiles` (relaxed geometry) |
+  | Functions of Z and R (headline-legal) | `A`, `B`, `C` (rotational constants, GHz): equal to 505.379 GHz·amu·Å² / I for the moments of inertia of the geometry (verified to 1.2e-5, `explore_01`) |
+  | Exploration only, reported separately (CLAUDE.md rule 1) | `q` (Mulliken charges, e); `alpha`, `homo`, `lumo`, `gap`, `r2`, `zpve`, `U0`, `U`, `H`, `G`, `Cv` (units in `readme.txt`); `freqs` (harmonic frequencies, cm⁻¹, as listed in the file) |
+  | Bookkeeping | `id`, `formula`, `n_atoms`, `n_heavy`, `smiles` and `inchi` (relaxed geometry), `smiles_gdb` and `inchi_gdb` (GDB-17 input) |
 
 - 176 coordinates use the Fortran `*^` exponent (first: molecule 212), and all of them parse.
 
@@ -90,3 +91,19 @@ Config: `configs/splits.yaml` (config_hash `da596c9e207c`). Files are in `splits
 
 Anchor skew: familiar formulas make up 9% of P but 43–50% of S_(s,100), 20–23% of S_(s,300),
 and 12–13% of S_(s,1000). See notebook 01 §5.
+
+## Data quality (exploration X1, `notebooks/explore_01_eda.ipynb`)
+
+Checked on the training pool P (7,131 molecules); the counts in brackets are for all 133,885 records.
+
+| Check | Result |
+|---|---|
+| missing values, array lengths, neutral charges (\|Σq\| ≤ 6e-6 e), μ ≥ 0 | all pass |
+| gap = lumo − homo; H − U = RT; U0 < U; G < H; A ≥ B ≥ C | all pass (gap to the file's 1e-4 Ha rounding) |
+| imaginary (negative) frequencies | none in P (5 in QM9, all already excluded: 6620, 59818, 87037, 117523, 129158) |
+| frequency lists printed twice (2 × (3n − 6) values, identical halves) | 25 in P (433); cleaning keeps the first copy |
+| linear molecules (3n − 5 modes; QM9 stores A = 0 for the infinite constant) | 5, all in P |
+| geometric duplicates (same formula and Coulomb spectrum to 0.01; \|μ\| equal within 0.003 D) | 12 pairs in P (133 groups, 273 molecules among the kept 130,823). No training set holds both twins and none shares a molecule with a test set (unit-tested), so the splits are unchanged; pool-wide analyses keep one twin per pair |
+| same InChI | 171 groups in P, but 159 are tautomers (different molecules, \|μ\| up to 6.3 D apart): standard InChI is not an identity test here |
+| stored coordinate frames | arbitrary: centroids up to 6.8 Å from the origin, 6.9% aligned with the principal axes |
+
