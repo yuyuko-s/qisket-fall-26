@@ -1,0 +1,51 @@
+{
+ "scaling": "yeo_johnson",
+ "target": "sqrt",
+ "rule": "lowest mean CV MAE over all paired (model, feature set, seed, N) cells",
+ "scaling_cv_mean_mae": {
+  "standard": 1.04682,
+  "robust": 1.04598,
+  "log_standard": 1.03161,
+  "yeo_johnson": 1.02466,
+  "quantile_normal": 1.04382
+ },
+ "target_cv_mean_mae": {
+  "standard": 0.80894,
+  "sqrt": 0.79741,
+  "log1p": 0.8006
+ },
+ "n_qubits": 8,
+ "variance_kept_by_n_qubits": {
+  "Coulomb spectrum (29)": 0.8825,
+  "structure (31)": 0.7756,
+  "cm+structure (60)": 0.7346
+ },
+ "effective_dimension": [
+  {
+   "feature set": "composition",
+   "features": 5,
+   "participation ratio": 3.46,
+   "k for 95%": 4
+  },
+  {
+   "feature set": "cm",
+   "features": 29,
+   "participation ratio": 4.68,
+   "k for 95%": 15
+  },
+  {
+   "feature set": "structure",
+   "features": 31,
+   "participation ratio": 9.31,
+   "k for 95%": 16
+  },
+  {
+   "feature set": "cm+structure",
+   "features": 60,
+   "participation ratio": 8.5,
+   "k for 95%": 27
+  }
+ ],
+ "config_hash": "af905088d623",
+ "git_hash": "5db83452184bdaf708794af5486c43e1dc3b8c24"
+}

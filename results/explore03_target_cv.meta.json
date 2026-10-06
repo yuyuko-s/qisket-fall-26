@@ -1,0 +1,20 @@
+{
+ "git_hash": "5db83452184bdaf708794af5486c43e1dc3b8c24",
+ "versions": {
+  "python": "3.12.14",
+  "qiskit": "2.5.2",
+  "qiskit-aer": "0.17.2",
+  "qiskit-ibm-runtime": "0.50.0",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "scikit-learn": "1.9.1",
+  "pandas": "3.0.6",
+  "pyarrow": "25.0.1",
+  "matplotlib": "3.11.2",
+  "pyyaml": "6.0.3",
+  "xgboost": "3.4.1",
+  "pytest": "9.1.1"
+ },
+ "scaling": "yeo_johnson",
+ "label": "exploratory; legal inputs; CV inside S_(s,N)"
+}
