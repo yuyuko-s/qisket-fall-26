@@ -12,7 +12,8 @@ comparison and an honest conclusion are.
 
 **The headline comparison is strict.** It uses only atom types and 3D coordinates, as the brief
 asks:
-- every model sees the same nested training sets (100 ⊂ 300 ⊂ 1000 molecules, 3 seeds);
+- every model sees the same nested training sets (100 ⊂ 300 ⊂ 1,000 ⊂ … ⊂ 99,198 molecules, 3 seeds; the
+  quantum-comparable sizes are 100, 300 and 1,000);
 - settings are tuned by cross-validation inside the training set only;
 - the test sets are evaluated exactly once, at the end;
 - every representation is tested for invariance to rotation, translation and atom reordering.
@@ -32,12 +33,15 @@ dead ends are logged in `docs/DECISIONS.md`.
 | M0 Environment and QM9 download | done | `notebooks/00_setup_and_data.ipynb` |
 | M1 Parser, exclusions, splits | done | `notebooks/01_parse_and_splits.ipynb` |
 | M2 Descriptors and invariance tests | done | `notebooks/02_descriptors_invariance.ipynb` |
-| X1 Classical statistical analysis (exploration): EDA → cleaning and features → scaling and effective dimension → models and effective parameters → new-formula generalization | done | `notebooks/explore_01` … `explore_05` |
-| M3 Classical baselines (CV only) | next | |
-| M4 Quantum kernel ridge regression | | |
-| M5 Finite-shot and noisy inference | | |
-| M6 Representation ablation, quantum cost | | |
-| M7 Final evaluation, figures, writeup | | |
+| X1 Classical statistical analysis (exploration), following PLAN.md literally | done, superseded by X2 | |
+| X2 Classical rebuild for accuracy: Track A (best model from Z and R, up to 99,198 labels) and Track B (quantum-comparable, N ≤ 1000) | done | `notebooks/explore_01` … `explore_05` |
+| M3 Classical baselines with CV and development-set scores | done (X2 Track B) | `notebooks/explore_04_classical_models.ipynb` |
+| M4 Quantum kernel ridge regression (exact simulation) | done on development sets | `notebooks/explore_06_quantum_vs_classical.ipynb` |
+| M5 Finite-shot and noisy inference (simulators) | done | `notebooks/explore_07_shots_noise_cost.ipynb` |
+| M6 Representation ablation, quantum cost | done | `explore_04` (composition only), `explore_06`, `explore_07` (cost) |
+| M7 Final evaluation on the test sets, writeup | next | `scripts/final_eval.py` (not written yet) |
+
+Results so far (development sets only; no test set has been evaluated): see `docs/OVERNIGHT_REPORT.md`.
 
 ## Setup
 
@@ -110,17 +114,21 @@ Run the notebooks in order. Each runs top to bottom and is safe to re-run.
 Splits are deterministic. Rebuilding them reproduces the committed `splits/*.json` molecule IDs
 exactly. Only the `git_hash` stamp changes.
 
-**Exploration X1**, a classical statistical analysis done before any quantum model, is a chain.
-Each notebook reads the previous one's output (`src/qm9dipole/explore.py`), so run them in order.
-Its thresholds live in `configs/explore.yaml`. It uses the training pool and training sets only.
+**The exploration chain (X2)** is a sequence: each notebook reads the previous one's output
+(`src/qm9dipole/explore.py`), so run them in order. Thresholds live in `configs/explore.yaml`. It uses the training
+pool, the training sets and the two development sets (`dev`, familiar formulas; `dev_unseen`, formulas absent from
+training) only; no test set. Long notebooks cache finished fits per commit in `data/processed/cache/`, so an
+interrupted run resumes.
 
 | Notebook | What it does | Time |
 |---|---|---|
 | `explore_01_eda.ipynb` | Exploratory data analysis of every QM9 field: roles (headline-legal vs DFT output), integrity, duplicates, distributions, information about \|μ\|, redundancy, outliers; writes recommendations | ~30 s |
-| `explore_02_cleaning_and_features.ipynb` | Acts on the EDA: record- and feature-level cleaning, engineered features (bond dipoles, bond orders, rings, inertia), feature catalog | ~20 s |
-| `explore_03_standardization_and_dimension.ipynb` | Chooses feature scaling and target transform by CV; PCA and the cost of 8-component compression; effective dimension of the inputs | ~40 min |
-| `explore_04_classical_models.ipynb` | Mean, linear, ridge, RBF kernel ridge, random forest, XGBoost learning curves; effective number of parameters of each fitted model | ~40 min |
-| `explore_05_generalization_and_diagnostics.ipynb` | Formula-grouped CV (new formulas), error structure, permutation importance | ~10 min |
+| `explore_02_cleaning_and_features.ipynb` | Cleaning; molecule-level features (bond dipoles, QEq charge-equilibration dipole, charged groups, radial distributions) and 85 per-atom environment features; feature catalog | ~2 min |
+| `explore_03_standardization_and_dimension.ipynb` | Chooses feature scaling and target transform per track; the Track B reduction (PLS, k = 10); feature ranking; effective dimension | ~1.5 h |
+| `explore_04_classical_models.ipynb` | Track A learning curves to the full pool (ridge, RBF kernel ridge, XGBoost, latent-charge network); Track B baselines at N ≤ 1000; effective number of parameters | ~9 h from scratch (~1.7 h with the Track A fits cached) |
+| `explore_05_generalization_and_diagnostics.ipynb` | New formulas, error structure, permutation importance, what the charge network learned, end-to-end invariance | ~30 min |
+| `explore_06_quantum_vs_classical.ipynb` | Quantum kernel ridge (three team encoders, a no-entanglement control), projected quantum kernel and the team's quantum-feature ridge against matched classical models, Track B and Track A; qubit count, inputs, kernel diagnostics, invariance | ~1.5 h (minutes when its fits are cached) |
+| `explore_07_shots_noise_cost.ipynb` | Quantum cost on IBM Heron (transpiled locally), finite-shot inference, noisy simulation with a fake-backend noise model (local Aer only) | ~50 min |
 
 To run everything without opening Jupyter:
 
@@ -129,14 +137,32 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/00_setup_and_data.
 jupyter nbconvert --to notebook --execute --inplace notebooks/01_parse_and_splits.ipynb
 jupyter nbconvert --to notebook --execute --inplace notebooks/02_descriptors_invariance.ipynb
 pytest -q
-# exploration X1, in order (long ones need no cell timeout):
-for nb in explore_01_eda explore_02_cleaning_and_features explore_03_standardization_and_dimension           explore_04_classical_models explore_05_generalization_and_diagnostics; do
+# the exploration chain, in order (long ones need no cell timeout):
+for nb in explore_01_eda explore_02_cleaning_and_features explore_03_standardization_and_dimension \
+          explore_04_classical_models explore_05_generalization_and_diagnostics \
+          explore_06_quantum_vs_classical explore_07_shots_noise_cost; do
   jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1 notebooks/$nb.ipynb
 done
 ```
 
 The final test-set evaluation (M7) will be a single script, `scripts/final_eval.py`, run once on
 frozen settings. Test sets are never used to choose anything before that.
+
+## Quantum regression models (M4–M6)
+
+`src/qm9dipole/models/quantum_kernel.py` holds the quantum models of the comparison, all built on the team's Qiskit
+encoders (`build_encoding_circuit`, below) and simulated exactly on a CPU:
+- **quantum kernel ridge (QKRR):** kernel ridge regression with the fidelity kernel k(x, x′) = |⟨ψ(x)|ψ(x′)⟩|²;
+- **projected quantum kernel:** an RBF kernel on each qubit's reduced state (its Bloch vector), after Huang et
+  al. (2021);
+- the team's **quantum-feature ridge** (below), with a fast exact `simulation_method="batched"`.
+
+`KernelRidgeFitter` tunes any kernel with exactly the protocol the classical models use (same folds, pooled CV MAE in
+debye, same refit); with the RBF kernel it reproduces the classical harness (a unit test checks this), so a quantum vs
+RBF difference comes from the kernel, not the tuning. Statevectors come from `models/qsim.py`, which evolves every
+molecule through the same Qiskit circuit at once and matches `qiskit.quantum_info.Statevector` to 1e-12.
+`noise.py` adds finite shots (validated against Aer's sampler) and fake-backend noise models (local Aer); `cost.py`
+transpiles circuits for IBM Heron and counts circuits and QPU time. Nothing runs on IBM hardware.
 
 ## Quantum-feature regression prototype
 
@@ -224,11 +250,12 @@ excluded molecules (with reasons), the working pool and the splits.
 ## Repository layout
 
 ```
-notebooks/      one notebook per milestone (the entry points); explore_* for exploration X1
+notebooks/      one notebook per milestone (the entry points); explore_* for the exploration chain
 src/qm9dipole/  all logic: data.py (download, parsing, exclusions), splits.py, descriptors.py,
-                features.py, invariance.py, provenance.py; eda.py, cleaning.py, preprocess.py,
-                complexity.py, evaluate.py, analysis.py, explore.py, plots.py, models/
-                (models/quantum.py: fixed quantum features + linear ridge prototype)
+                features.py, atoms.py, invariance.py, provenance.py; eda.py, cleaning.py, preprocess.py,
+                complexity.py, evaluate.py, analysis.py, explore.py, plots.py, noise.py, cost.py, models/
+                (classical.py, fitters.py, charge.py: latent-charge network; quantum.py: the team's encoders
+                and quantum-feature ridge; qsim.py: batched statevectors; quantum_kernel.py: quantum kernels)
 tests/          pytest suite, including negative controls for every split check and invariance test
 results/        result tables (CSV), each with a .meta.json provenance file
 configs/        splits.yaml (seeds and sizes; its hash is stamped into every split file),

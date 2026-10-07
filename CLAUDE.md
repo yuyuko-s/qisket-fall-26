@@ -180,13 +180,18 @@ pip check && pytest -q
 jupyter nbconvert --to notebook --execute --inplace notebooks/00_setup_and_data.ipynb   # M0: download + checks
 jupyter nbconvert --to notebook --execute --inplace notebooks/01_parse_and_splits.ipynb # M1: parquet + splits/
 jupyter nbconvert --to notebook --execute --inplace notebooks/02_descriptors_invariance.ipynb # M2: invariance table
-# Exploration X1 (classical statistical analysis), a chain: run in order; each reads the previous one's output.
-# 01 EDA (~30 s), 02 cleaning + features (~20 s), 03 scaling + dimension (~40 min), 04 models + df (~40 min), 05 (~10 min)
+# The exploration chain (X2), run in order; each reads the previous one's output. Long ones cache finished fits per
+# commit in data/processed/cache/ (resumable). Times on an 8-core CPU, from scratch:
+# 01 EDA (~30 s), 02 features (~2 min), 03 scaling + dimension (~1.5 h), 04 Track A + B + df (~9 h; Track A is the
+# charge network and XGBoost on 99k molecules), 05 (~30 min), 06 quantum vs classical (~1.5 h), 07 shots/noise/cost (~50 min)
 jupyter nbconvert --to notebook --execute --inplace notebooks/explore_01_eda.ipynb
 jupyter nbconvert --to notebook --execute --inplace notebooks/explore_02_cleaning_and_features.ipynb
 jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1 notebooks/explore_03_standardization_and_dimension.ipynb
 jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1 notebooks/explore_04_classical_models.ipynb
 jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1 notebooks/explore_05_generalization_and_diagnostics.ipynb
+jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1 notebooks/explore_06_quantum_vs_classical.ipynb
+jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1 notebooks/explore_07_shots_noise_cost.ipynb
+# QM9DIPOLE_SMOKE=1 makes explore_06/07 run one seed at N = 100 with small axes (minutes; development only)
 jupyter nbconvert --to notebook --execute --inplace notebooks/02_quantum_regression.ipynb # synthetic quantum prototype, not M4 completion
 python scripts/final_eval.py --config configs/frozen.yaml  # M7: run once, at the end (not yet written)
 ```
@@ -207,13 +212,13 @@ python scripts/final_eval.py --config configs/frozen.yaml  # M7: run once, at th
 | M1 | Parser, exclusions and split builder (with asserts) | done 2026-10-05 (`notebooks/01_parse_and_splits.ipynb`); open: anchor-skew review (DECISIONS.md) |
 | M2 | Descriptors and invariance tests (including the negative control) | done 2026-10-05 (`notebooks/02_descriptors_invariance.ipynb`) |
 | X1 | Exploration: classical statistical analysis before any quantum work (EDA → cleaning → features → scaling → models, `notebooks/explore_01..05`) | done 2026-10-06; superseded by X2 |
-| X2 | Exploration: classical rebuild for accuracy (Track A), then quantum-comparable baselines (Track B); new splits, per-atom features, latent-charge model, learning curves to the full pool (`notebooks/01`, `explore_01..05` rerun) | in progress |
-| M3 | Classical baselines and learning-curve harness (CV metrics only) | |
-| M4 | Quantum kernel ridge regression (statevector) | |
-| M5 | Finite-shot and noisy inference | |
-| M6 | Representation ablation and quantum cost table | |
-| M7 | Frozen configs, single final evaluation, figures, writeup | |
-| M8 | Optional: projected quantum kernel, small real-QPU run (ask first), extensions | |
+| X2 | Exploration: classical rebuild for accuracy (Track A), then quantum-comparable baselines (Track B); new splits, per-atom features, latent-charge model, learning curves to the full pool (`notebooks/01`, `explore_01..05` rerun) | done 2026-10-07 (summary: `docs/OVERNIGHT_REPORT.md`) |
+| M3 | Classical baselines and learning-curve harness (CV metrics only) | done 2026-10-07 as X2 Track B (`explore_04`: CV and development-set scores) |
+| M4 | Quantum kernel ridge regression (statevector) | done 2026-10-07 on development sets (`explore_06`; `models/quantum_kernel.py`) |
+| M5 | Finite-shot and noisy inference | done 2026-10-07 (`explore_07`: binomial model validated on Aer; shot sweep; FakeFez subset) |
+| M6 | Representation ablation and quantum cost table | done 2026-10-07 (composition only in `explore_04`/`06`; cost table in `explore_07`) |
+| M7 | Frozen configs, single final evaluation, figures, writeup | next: `configs/frozen.yaml` and `scripts/final_eval.py` (not written) |
+| M8 | Optional: projected quantum kernel, small real-QPU run (ask first), extensions | projected quantum kernel done (`explore_06`/`07`); no QPU run |
 
 M0–M7 are all required by the full brief. Work one milestone at a time. After each, summarize
 what was done, what passed, and what the user should check.
