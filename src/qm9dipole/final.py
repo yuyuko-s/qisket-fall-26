@@ -180,47 +180,68 @@ def noisy_fidelity_scores(fitter, X_train: np.ndarray, X_test: np.ndarray, y_tes
     return rows, {"exact": K_exact, "noisy": K_noisy, "mitigated": K_mit, "survival": survival}
 
 
-def noisy_feature_scores(fitter, X_train: np.ndarray, y_train: np.ndarray, X_test: np.ndarray, y_test: np.ndarray,
-                         shots: int, backend: str, kind: str, seed: int = 0, n_jobs: int = -1) -> list[dict]:
-    """End-to-end noisy runs of the projected kernel (kind "projected": X, Y, Z bases) or the
-    team's ⟨Z⟩ ridge (kind "z_readout": Z basis): training and test features measured on the
-    noisy simulator, model refit; with exact and shots-only references."""
+def feature_model(fitter, kind: str, X_train: np.ndarray, y_train: np.ndarray):
+    """What it takes to run a fitted feature-based quantum model on a device: kind "projected" (a
+    KernelRidgeFitter with a projected kernel: X, Y and Z bases) or "z_readout" (a TabularFitter around
+    the team's QuantumRidgeRegressor: Z basis). Returns a namespace with
+    - encoder: the parameterized encoding circuit U(x) (parameter vector "x");
+    - bases: the measurement bases, in the feature layout's order;
+    - angles(X): the circuit parameters (γ·scaled inputs) for raw feature rows X;
+    - exact_train, exact(X): the exact features of the training rows and of any raw rows;
+    - predict(F_train, F_test): debye predictions after refitting the model's readout (kernel ridge or
+      ridge, at its tuned penalty) on the given training features, e.g. ones measured with shots or on
+      hardware.
+    """
+    from types import SimpleNamespace
+
     from sklearn.kernel_ridge import KernelRidge
     from sklearn.linear_model import Ridge
 
-    from qm9dipole.noise import sample_bloch, shot_expectations
-
-    rng = np.random.default_rng(seed + 3)
     Xtr = np.asarray(X_train, dtype=np.float64)
     if kind == "projected":
         g, d, ks = fitter.embed_setting_["gamma"], fitter.n_inputs_, fitter.kernel_setting_
-        enc = fitter.kernel.circuit(d)
-        Atr, At = g * fitter.transform_inputs(Xtr), g * fitter.transform_inputs(X_test)
-        exact = (fitter.train_embedding_, fitter.embed_X(X_test))
-        noisy = (sample_bloch(enc, Atr, shots, backend=backend, seed=seed, n_jobs=n_jobs, chunk=10),
-                 sample_bloch(enc, At, shots, backend=backend, seed=seed + 100, n_jobs=n_jobs, chunk=10))
 
         def predict(F_tr, F_te):
             m = KernelRidge(kernel="precomputed", alpha=fitter.alpha_).fit(fitter.kernel.gram(F_tr, F_tr, ks), fitter.z_train_)
             return fitter.predict_from_gram(fitter.kernel.gram(F_te, F_tr, ks), m)
-    elif kind == "z_readout":
+
+        return SimpleNamespace(encoder=fitter.kernel.circuit(d), bases="XYZ",
+                               angles=lambda X: g * fitter.transform_inputs(np.asarray(X, dtype=np.float64)),
+                               exact_train=fitter.train_embedding_, exact=fitter.embed_X, predict=predict)
+    if kind == "z_readout":
         est = fitter.model_
         prefix, qr = est.regressor_[:-1], est.regressor_[-1]
-        scaler, enc, gq = qr.pipeline_[0], qr.pipeline_[1].circuit_, qr.pipeline_[1].gamma_
-        Ptr, Pte = prefix.transform(Xtr), prefix.transform(X_test)
-        exact = (qr.quantum_features(Ptr), qr.quantum_features(Pte))
-        noisy = (sample_bloch(enc, gq * scaler.transform(Ptr), shots, backend=backend, seed=seed, bases="Z", n_jobs=n_jobs, chunk=10),
-                 sample_bloch(enc, gq * scaler.transform(Pte), shots, backend=backend, seed=seed + 100, bases="Z",
-                              n_jobs=n_jobs, chunk=10))
+        scaler, gq = qr.pipeline_[0], qr.pipeline_[1].gamma_
         z_tr = est.transformer_.transform(np.asarray(y_train, dtype=np.float64)[:, None]).ravel()
 
         def predict(F_tr, F_te):
             ridge = Ridge(alpha=fitter.params_["regressor__model__alpha"]).fit(F_tr, z_tr)
             return clip_predictions(est.transformer_.inverse_transform(ridge.predict(F_te)[:, None]).ravel())
-    else:
-        raise KeyError(kind)
+
+        return SimpleNamespace(encoder=qr.pipeline_[1].circuit_, bases="Z",
+                               angles=lambda X: gq * scaler.transform(prefix.transform(np.asarray(X, dtype=np.float64))),
+                               exact_train=qr.quantum_features(prefix.transform(Xtr)),
+                               exact=lambda X: qr.quantum_features(prefix.transform(np.asarray(X, dtype=np.float64))),
+                               predict=predict)
+    raise KeyError(kind)
+
+
+def noisy_feature_scores(fitter, X_train: np.ndarray, y_train: np.ndarray, X_test: np.ndarray, y_test: np.ndarray,
+                         shots: int, backend: str, kind: str, seed: int = 0, n_jobs: int = -1) -> list[dict]:
+    """End-to-end noisy runs of the projected kernel (kind "projected": X, Y, Z bases) or the
+    team's ⟨Z⟩ ridge (kind "z_readout": Z basis): training and test features measured on the
+    noisy simulator, model refit; with exact and shots-only references."""
+    from qm9dipole.noise import sample_bloch, shot_expectations
+
+    rng = np.random.default_rng(seed + 3)
+    fm = feature_model(fitter, kind, X_train, y_train)
+    exact = (fm.exact_train, fm.exact(X_test))
+    noisy = (sample_bloch(fm.encoder, fm.angles(X_train), shots, backend=backend, seed=seed, bases=fm.bases,
+                          n_jobs=n_jobs, chunk=10),
+             sample_bloch(fm.encoder, fm.angles(X_test), shots, backend=backend, seed=seed + 100, bases=fm.bases,
+                          n_jobs=n_jobs, chunk=10))
     shot = (shot_expectations(exact[0], shots, rng), shot_expectations(exact[1], shots, rng))
-    return [{"mode": mode, **scores(y_test, predict(*F))} for mode, F in (("exact", exact), ("shots only", shot), ("noisy", noisy))]
+    return [{"mode": mode, **scores(y_test, fm.predict(*F))} for mode, F in (("exact", exact), ("shots only", shot), ("noisy", noisy))]
 
 
 def timed(label: str):

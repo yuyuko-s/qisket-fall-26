@@ -160,6 +160,24 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/07_test_comparison
 The team may change models after a test run and run again (CLAUDE.md rule 2): edit the config or code, say what
 changed in the config's `note`, commit, rerun. Each run's results are kept (`results/test_runNN_*.csv`).
 
+### Running on IBM quantum hardware (optional)
+
+`scripts/hardware_run.py` measures the quantum models' circuits on a device: the projected quantum kernel
+(X, Y and Z bases) and the team's ⟨Z⟩ ridge end to end (100 training + 60 test molecules, readout refit on
+the measured features), plus a 10 × 5 block of fidelity-kernel entries. The fidelity-kernel *model* is not run
+on hardware: it needs one circuit per pair of molecules (~5,000 to train even at N = 100). Default plan:
+700 circuits × 1,000 shots ≈ 3 min of QPU time on `ibm_quebec`; the job is capped at `--max-seconds`.
+
+```bash
+python scripts/hardware_run.py --dry-run                      # local Aer with ibm_quebec's noise model (FakeQuebec)
+python scripts/hardware_run.py --backend ibm_quebec           # plan only: circuits, shots, QPU time; submits nothing
+python scripts/hardware_run.py --backend ibm_quebec --submit  # one job; asks you to type 'submit' to confirm
+python scripts/hardware_run.py --retrieve <job id>            # if the wait was interrupted
+```
+
+The IBM account is read from your local Qiskit config (`QiskitRuntimeService(name="pinq2")`, saved once with
+`QiskitRuntimeService.save_account(...)`); never put a token in the repository.
+
 ## Quantum regression models (M4–M6)
 
 `src/qm9dipole/models/quantum_kernel.py` holds the quantum models of the comparison, all built on the team's Qiskit

@@ -124,8 +124,9 @@ training and development sets, and test sets are scored by `scripts/final_eval.p
 - Notebooks must keep the generic kernelspec `python3` (never a machine-specific kernel name),
   and their first code cell is the environment check
   (`qm9dipole.provenance.check_environment()`).
-- The one exception is `scripts/final_eval.py`, a script so that each test run is a single,
-  logged unit (rule 2); `notebooks/07_test_comparison.ipynb` presents its results.
+- The exceptions are `scripts/final_eval.py`, a script so that each test run is a single,
+  logged unit (rule 2; `notebooks/07_test_comparison.ipynb` presents its results), and
+  `scripts/hardware_run.py`, which sends one capped job to an IBM device only with `--submit` (rule 9).
 - `data/raw/dsgdb9nsd.xyz.tar.bz2` is not extracted (it would create 133,885 small files).
   Read it with `tarfile` in streaming mode; it is parsed once into `data/processed/qm9.parquet`.
 
@@ -166,14 +167,15 @@ src/qm9dipole/
   cost.py          quantum resource accounting (gate counts, transpiled costs, circuits, QPU time)
   evaluate.py      metrics, CV (tune), learning-curve harness, permutation importance
   final.py         test-set evaluation helpers: test-molecule features, shots/noise scoring, run log
+  hardware.py      device runs: PUBs (ISA circuits + parameter rows), plan/QPU time, submit, parse, score
   analysis.py      exploratory statistics (variance by formula, PCA-vs-k curves, error breakdowns)
   plots.py         shared figure style; one fixed color per model
-scripts/     final_eval.py only
+scripts/     final_eval.py (test runs), hardware_run.py (IBM device runs; rule 9)
 tests/       test_environment.py, test_data_download.py, test_parser.py, test_splits.py,
              test_invariance.py, test_features.py, test_evaluate.py, test_analysis.py,
              test_eda.py, test_cleaning.py, test_preprocess.py, test_complexity.py,
              test_quantum.py, test_quantum_encoding.py (teammate), test_qsim.py,
-             test_quantum_kernel.py, test_noise_cost.py, test_final.py, ...
+             test_quantum_kernel.py, test_noise_cost.py, test_final.py, test_hardware.py, ...
 results/     CSV outputs, each with a .meta.json provenance sidecar (provenance.save_result)
 figures/
 ```
@@ -204,6 +206,11 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/02_quantum_regress
 python scripts/final_eval.py --dry-run --smoke
 python scripts/final_eval.py                 # a logged test run (~3-4 h); refuses a dirty tree
 jupyter nbconvert --to notebook --execute --inplace notebooks/07_test_comparison.ipynb  # presents the latest run
+# IBM device runs (rule 9: ask first). Default backend FakeQuebec = local Aer with ibm_quebec's noise model
+python scripts/hardware_run.py --dry-run                      # local, development molecules
+python scripts/hardware_run.py --backend ibm_quebec           # plan only: circuits, shots, QPU time
+python scripts/hardware_run.py --backend ibm_quebec --submit  # one job, capped by --max-seconds (default 300)
+python scripts/hardware_run.py --retrieve <job id>
 ```
 
 ## Conventions
