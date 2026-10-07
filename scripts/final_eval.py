@@ -5,6 +5,10 @@
     python scripts/final_eval.py --dry-run --smoke    # one seed, N = 100, small subsets: checks the script in minutes
     python scripts/final_eval.py --sections quantum,shots   # only some sections (quantum, track_a, shots, noise)
 
+Quantum model names: qkrr, qkrr_ry, qkrr_ryrz, qkrr_product, pqk (exact simulation) and qridge; a
+suffix @S (e.g. qkrr@1000) makes a kernel model shot-aware: tuned, fit and evaluated with S shots per
+circuit (`quantum_kernel.ShotNoisyKernel`).
+
 Every model is trained and tuned exactly as in the development notebooks (explore_04 for the
 classical tracks, explore_06/07 for the quantum models): on the saved training sets, with
 cross-validation inside each training set only. Each fitted model then predicts the test sets
@@ -34,37 +38,44 @@ from qm9dipole.explore import feature_sets, load_atoms, load_catalog, load_confi
 from qm9dipole.final import (CONFIG_PATH, RUN_LOG, evaluation_frame, load_config as load_eval_config, log_run,
                              next_run_number, noisy_feature_scores, noisy_fidelity_scores, shot_scores, timed)
 from qm9dipole.models import classical
+from qm9dipole.models.classical import KRR_ALPHAS
 from qm9dipole.models.fitters import ChargeFitter, MeanFitter, TabularFitter, XGBFitter
-from qm9dipole.models.quantum_kernel import FidelityKernel, KernelRidgeFitter, ProjectedKernel, quantum_ridge_build
+from qm9dipole.models.quantum_kernel import (FidelityKernel, KernelRidgeFitter, ProjectedKernel, ShotNoisyKernel,
+                                             quantum_ridge_build)
 from qm9dipole.provenance import RESULTS_DIR, config_hash, git_hash, save_result
 from qm9dipole.splits import load_splits
 
 KERNELS = {"qkrr": ("fidelity", "zz", 2), "qkrr_ry": ("fidelity", "ry", 2), "qkrr_ryrz": ("fidelity", "ry_rz", 2),
            "qkrr_product": ("fidelity", "ry", 1), "pqk": ("projected", "zz", 2)}
 SECTIONS = ("quantum", "track_a", "shots", "noise")
+#: Ridge penalties of shot-aware models: the shared grid plus two stronger ones (shot noise calls for more
+#: regularization; at 100 shots CV chose the grid's largest α, 10, in a development check).
+SHOT_ALPHAS = (*KRR_ALPHAS, 100.0, 1000.0)
 
 
-def kernel_for(model: str, gammas=None, gammas_p=None):
-    kind, enc, reps = KERNELS[model]
-    if kind == "projected":
-        return ProjectedKernel(enc, reps, gammas=gammas, gammas_p=gammas_p)
-    return FidelityKernel(enc, reps, gammas=gammas)
+def kernel_for(model: str, gammas=None, gammas_p=None, seed: int = 0):
+    """The kernel of a quantum model name; "name@S" adds S-shot noise everywhere (shot-aware)."""
+    base, _, shots = model.partition("@")
+    kind, enc, reps = KERNELS[base]
+    kern = (ProjectedKernel(enc, reps, gammas=gammas, gammas_p=gammas_p) if kind == "projected"
+            else FidelityKernel(enc, reps, gammas=gammas))
+    return ShotNoisyKernel(kern, int(shots), seed) if shots else kern
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--config", default=str(CONFIG_PATH))
-    ap.add_argument("--sections", default=",".join(SECTIONS))
+    ap.add_argument("--sections", default=None, help="default: the config's `sections`, else all")
     ap.add_argument("--dry-run", action="store_true", help="score the development sets only (no test set is read)")
     ap.add_argument("--smoke", action="store_true", help="one seed, N = 100, small subsets")
     ap.add_argument("--allow-dirty", action="store_true")
     args = ap.parse_args()
-    sections = [s for s in args.sections.split(",") if s]
-    unknown = set(sections) - set(SECTIONS)
+    cfg = load_eval_config(args.config)
+    sections = args.sections.split(",") if args.sections else list(cfg.get("sections", SECTIONS))
+    sections = [s for s in SECTIONS if s in sections]  # always in this order
+    unknown = set(args.sections.split(",") if args.sections else []) - set(SECTIONS)
     if unknown:
         ap.error(f"unknown sections {unknown}")
-
-    cfg = load_eval_config(args.config)
     commit = git_hash(short=True)
     if commit.endswith("-dirty") and not (args.allow_dirty or args.dry_run):
         print("The working tree has uncommitted changes: commit them first (or pass --allow-dirty).")
@@ -102,8 +113,8 @@ def main() -> int:
     frames = {"all_legal": XA, "composition": XA[SETS["composition"]]}
     mu = table.set_index("id")["mu"]
     y = pd.concat([features["mu"].astype(np.float64), mu.loc[np.setdiff1d(XA.index, features.index)]])
-    meta = dict(run=run, note=cfg["note"], config_hash=config_hash(cfg), dry_run=args.dry_run, smoke=args.smoke,
-                eval_sets={k: len(v) for k, v in {**eval_ids, **q_ids}.items()})
+    meta = dict(run=run, note=cfg["note"], config_hash=config_hash(cfg), config=cfg, dry_run=args.dry_run,
+                smoke=args.smoke, eval_sets={k: len(v) for k, v in {**eval_ids, **q_ids}.items()})
 
     def save(df, section, **extra):
         df = df.assign(run=run)
@@ -128,9 +139,10 @@ def main() -> int:
                         continue
                     frame, red = inputs[name]
                     key = f"{model}|{name}"
-                    if model in KERNELS:
-                        out[key] = KernelRidgeFitter(frame, kernel_for(model), seed, scaling=SC_B, target=TG_B,
-                                                     reduction=red, cv_max_n=max(q_sizes))
+                    if model.partition("@")[0] in KERNELS:
+                        out[key] = KernelRidgeFitter(frame, kernel_for(model, seed=seed), seed, scaling=SC_B,
+                                                     target=TG_B, reduction=red, cv_max_n=max(q_sizes),
+                                                     alphas=SHOT_ALPHAS if "@" in model else KRR_ALPHAS)
                     elif model == "qridge":
                         est, grid = quantum_ridge_build(seed, SC_B, TG_B, red, frame.shape[1])
                         out[key] = TabularFitter(frame, est, grid, seed, cv_max_n=max(q_sizes))
@@ -142,7 +154,8 @@ def main() -> int:
 
         sets = {s: {n: splits.train[s][n] for n in q_sizes} for s in seeds}
         with timed("quantum section"):
-            quantum, _ = dev_curve(make_quantum, sets, eval_ids, y, cache_dir=cache, progress=True)
+            # The quantum test subsets too (from run 2): shot-aware models compare with the shots section there.
+            quantum, _ = dev_curve(make_quantum, sets, {**eval_ids, **q_ids}, y, cache_dir=cache, progress=True)
         quantum[["model", "inputs"]] = quantum["model"].str.split("|", expand=True).reindex(columns=[0, 1])
         quantum["inputs"] = quantum["inputs"].fillna("—")
         quantum["cv_mae_D"] = quantum["details"].map(lambda d: json.loads(d).get("tuning_mae_D", np.nan))

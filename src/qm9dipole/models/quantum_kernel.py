@@ -169,6 +169,71 @@ class RBFKernel:
         return rbf_kernel(A, B, gamma=setting["gamma"])
 
 
+class ShotNoisyKernel:
+    """A quantum kernel as a device with `shots` measurements per circuit would return it, used
+    everywhere: in cross-validation, in the final fit and in prediction ("shot-aware" tuning).
+
+    - Fidelity kernel: every entry k(x, x′) is Binomial(shots, k)/shots. A training kernel
+      (gram of a set with itself) measures each pair once (upper triangle, mirrored), sets the
+      diagonal to 1 and clips negative eigenvalues (`noise.repair_kernel`).
+    - Projected kernel: every Bloch coordinate is estimated from `shots` ±1 outcomes; the RBF on
+      Bloch vectors is then exact.
+
+    Inside `KernelRidgeFitter`, cross-validation therefore picks the angle scale γ and penalty α
+    that work best *with* this shot noise, instead of the exact-kernel optimum (which, for the
+    fidelity kernel at N = 1000, is unusable at any affordable shot count: test run 1).
+    The noise is a deterministic function of (seed, inputs), so results are reproducible and do
+    not depend on how the work is split across processes.
+    """
+
+    def __init__(self, base, shots: int, seed: int = 0):
+        if not isinstance(base, FidelityKernel):
+            raise TypeError("shot noise applies to quantum kernels (FidelityKernel, ProjectedKernel)")
+        self.base, self.shots, self.seed = base, int(shots), int(seed)
+
+    @property
+    def config(self) -> dict:
+        return {**self.base.config, "shots": self.shots, "shot_seed": self.seed}
+
+    def _rng(self, *arrays: np.ndarray, extra: float = 0.0) -> np.random.Generator:
+        import zlib
+
+        keys = [zlib.crc32(np.ascontiguousarray(a).tobytes()) for a in arrays]
+        return np.random.default_rng([self.seed, *keys, zlib.crc32(np.float64(extra).tobytes())])
+
+    def qubits(self, d: int) -> int:
+        return self.base.qubits(d)
+
+    def circuit(self, d: int):
+        return self.base.circuit(d)
+
+    def embed_grid(self, d: int) -> list[dict]:
+        return self.base.embed_grid(d)
+
+    def kernel_grid(self, d: int) -> list[dict]:
+        return self.base.kernel_grid(d)
+
+    def embed(self, X: np.ndarray, setting: dict) -> np.ndarray:
+        E = self.base.embed(X, setting)
+        if isinstance(self.base, ProjectedKernel):
+            from qm9dipole.noise import shot_expectations
+
+            return shot_expectations(E, self.shots, self._rng(X, extra=setting["gamma"]))
+        return E
+
+    def gram(self, A: np.ndarray, B: np.ndarray, setting: dict) -> np.ndarray:
+        K = self.base.gram(A, B, setting)
+        if isinstance(self.base, ProjectedKernel):
+            return K  # the noise is in the Bloch vectors
+        from qm9dipole.noise import repair_kernel, shot_kernel
+
+        noisy = shot_kernel(K, self.shots, self._rng(A, B))
+        if A is B:
+            upper = np.triu(noisy, 1)
+            return repair_kernel(upper + upper.T)
+        return noisy
+
+
 def zz_readout_closed_form(angles: np.ndarray) -> np.ndarray:
     """⟨Z_k⟩ of the two-pass linear ZZ encoder (`build_encoding_circuit(d, d, "zz", reps=2)`) at
     angles a = γ·x, without simulating anything:

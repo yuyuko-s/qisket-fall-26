@@ -13,7 +13,7 @@ from qm9dipole.invariance import TRANSFORMS
 from qm9dipole.models import classical
 from qm9dipole.models.fitters import TabularFitter
 from qm9dipole.models.quantum_kernel import (
-    FidelityKernel, KernelRidgeFitter, ProjectedKernel, RBFKernel, bloch_vectors, kernel_spectrum,
+    FidelityKernel, KernelRidgeFitter, ProjectedKernel, RBFKernel, ShotNoisyKernel, bloch_vectors, kernel_spectrum,
     kernel_target_alignment, offdiag_stats, quantum_gamma_grid,
 )
 from qm9dipole.models.qsim import BatchedCircuit
@@ -199,3 +199,55 @@ def test_chunked_prediction_matches_one_block(frame):
     fit = KernelRidgeFitter(F, FidelityKernel("zz"), seed=0, reduction=("pca", 3), n_jobs=1).fit(F.index[:60], y.iloc[:60])
     X = F.iloc[100:].to_numpy()
     np.testing.assert_allclose(fit.predict_X(X, chunk=7), fit.predict_X(X, chunk=1000), rtol=1e-12)
+
+
+# --- Shot-aware kernels ---------------------------------------------------------------------
+
+def test_shot_noisy_fidelity_kernel_is_a_valid_reproducible_estimate():
+    X = np.random.default_rng(7).normal(size=(30, 4))
+    base = FidelityKernel("zz")
+    kern = ShotNoisyKernel(base, 200, seed=1)
+    E = kern.embed(X, {"gamma": 0.4})
+    np.testing.assert_array_equal(E, base.embed(X, {"gamma": 0.4}))  # the states themselves are exact
+    exact = base.gram(E, E, {})
+    K = kern.gram(E, E, {})
+    np.testing.assert_allclose(K, K.T, atol=1e-12)
+    np.testing.assert_allclose(np.diag(K), 1.0, atol=1e-9)
+    assert np.linalg.eigvalsh(K).min() > -1e-9
+    np.testing.assert_array_equal(K, kern.gram(E, E, {}))  # deterministic in (seed, inputs)
+    assert not np.array_equal(K, ShotNoisyKernel(base, 200, seed=2).gram(E, E, {}))
+    Kv = kern.gram(E[:7], E, {})
+    np.testing.assert_allclose(Kv * 200, np.round(Kv * 200), atol=1e-9)  # counts over 200 shots
+    assert 0.005 < np.abs(Kv - exact[:7]).mean() < 0.05  # about sqrt(k(1-k)/200)
+    many = ShotNoisyKernel(base, 10**9, seed=1).gram(E[:7], E, {})
+    np.testing.assert_allclose(many, exact[:7], atol=2e-4)
+
+
+def test_shot_noisy_projected_kernel_measures_bloch_vectors():
+    X = np.random.default_rng(8).normal(size=(20, 4))
+    base = ProjectedKernel("zz")
+    kern = ShotNoisyKernel(base, 100, seed=0)
+    B = kern.embed(X, {"gamma": 0.5})
+    exact = base.embed(X, {"gamma": 0.5})
+    assert B.shape == exact.shape and np.all(np.abs(B) <= 1)
+    np.testing.assert_allclose((B + 1) * 50, np.round((B + 1) * 50), atol=1e-9)
+    assert 0.01 < np.abs(B - exact).mean() < 0.2
+    np.testing.assert_allclose(kern.gram(B, B, {"gamma_p": 0.3}), base.gram(B, B, {"gamma_p": 0.3}))
+    with pytest.raises(TypeError):
+        ShotNoisyKernel(RBFKernel(), 100)
+
+
+@pytest.mark.parametrize("make", [lambda: FidelityKernel("zz", gammas=[0.3, 1.0]),
+                                  lambda: ProjectedKernel("zz", gammas=[0.3, 1.0], gammas_p=[0.1, 1.0])])
+def test_shot_aware_fitter_tunes_with_noise_and_approaches_exact(frame, make):
+    X, y = frame
+    tr, te = X.index[:120], X.index[120:]
+    exact = KernelRidgeFitter(X, make(), 0, scaling="standard", target="sqrt", reduction=("pca", 4)).fit(tr, y.loc[tr])
+    huge = KernelRidgeFitter(X, ShotNoisyKernel(make(), 10**9), 0, scaling="standard", target="sqrt",
+                             reduction=("pca", 4)).fit(tr, y.loc[tr])
+    assert huge.describe()["params"] == exact.describe()["params"]
+    np.testing.assert_allclose(huge.predict(te), exact.predict(te), atol=5e-3)
+    few = KernelRidgeFitter(X, ShotNoisyKernel(make(), 50), 0, scaling="standard", target="sqrt",
+                            reduction=("pca", 4)).fit(tr, y.loc[tr])
+    assert few.tuning_mae_ >= exact.tuning_mae_ - 0.05 and np.isfinite(few.predict(te)).all()
+    assert few.config["kernel"]["shots"] == 50 and "shots" not in exact.config["kernel"]
