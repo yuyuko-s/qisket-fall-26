@@ -54,56 +54,55 @@ Rules are applied in order. "Removed" counts only IDs not already removed by an 
 | `uncharacterized.txt` | listed in file | 3,054 | 3,054 | The relaxed B3LYP geometry corresponds to a different SMILES than the GDB-17 input, so the structure–label pairing is suspect |
 | readme: difficult to converge | 21725, 87037, 59827, 117523, 128113, 129053, 129152, 129158, 130535, 6620, 59818 | 11 | 8 | 6620 and 59818 converged to saddle points (not true minima); six converged only at a low threshold; three (21725, 87037, 117523) are already in `uncharacterized.txt` |
 | parse failures | — | 0 | 0 | — |
-| **Total** | | | **3,062** | **130,823 molecules kept**, 616 formulas (5 formulas existed only among excluded molecules) |
+| geometric duplicate (extra copy), X2 | same formula and Coulomb spectrum to 0.01 (identical geometry and \|μ\|); keep the smallest ID | 140 | 140 | The same molecule listed twice (133 groups). Dropping the copies before splitting means no molecule can sit in two sets or two CV folds. Found by geometry, not InChI (InChI merges tautomers). The IDs are in `splits/meta.json` (`excluded_duplicates`) |
+| **Total** | | | **3,202** | **130,683 molecules kept**, 616 formulas (5 formulas existed only among excluded molecules) |
 
-## Working pool (M1, PLAN §3.5)
+## Working pool (M1 as redesigned in exploration X2)
 
-At most 25 molecules per formula, sampled uniformly within each formula with the split seed (2026).
-The IDs are in `splits/pool.json`.
+X1 kept at most 25 molecules per formula (8,438 molecules), as PLAN §3.5 asked. **X2 removed the
+cap** (DECISIONS.md, 2026-10-06): QM9 is very unevenly spread over formulas (the 20 largest of 616
+hold 53% of the molecules; the median formula has 12), so the cap discarded 94% of the data and
+changed its distribution. Every kept molecule is now assigned to exactly one set below.
 
-- **8,438 molecules, 616 formulas.** Median 12 molecules per formula; 240 formulas are
-  capped at 25, and 144 have fewer than 3 (these cannot be familiar formulas).
-- Heavy-atom counts:
+## Splits (exploration X2 design, `src/qm9dipole/splits.py`)
 
-  | heavy atoms | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
-  |---|---|---|---|---|---|---|---|---|---|
-  | formulas | 3 | 5 | 7 | 20 | 31 | 64 | 92 | 162 | 232 |
-  | molecules | 3 | 5 | 9 | 31 | 127 | 521 | 1,265 | 2,371 | 4,106 |
+Config: `configs/splits.yaml` (config_hash `b6dc147c9647`). Files are in `splits/`; built by
+`notebooks/01_parse_and_splits.ipynb`.
 
-- μ: median about 2.5 D. 422 molecules are below 0.25 D: near-symmetric molecules, 27 of them
-  exactly 0, such as methane, acetylene and ethane. The tail is long: 34 molecules are at or
-  above 9 D, up to 29.6 D. The largest dipoles are **zwitterions** (for example ID 123126,
-  `[NH3]CCCCCC(=O)[O]`, 29.6 D), with a full charge separated across the molecule. They are real
-  computed values and are kept, but they weigh heavily on RMSE, which is worth remembering when
-  comparing MAE and RMSE.
-- Figure: `figures/m1_pool_overview.png`.
+| Set | File | Molecules | Formulas | Use |
+|---|---|---|---|---|
+| Unseen-formula test | `test_unseen.json` | 16,818 | 93 (15%, stratified by heavy-atom count; the same formulas as X1) | final evaluation only (`scripts/final_eval.py`) |
+| Familiar test | `test_familiar.json` | 5,484 | 257 | final evaluation only |
+| Development | `dev.json` | 5,000 | 257 | learning curves, model comparison, diagnostics |
+| Development holdout (unseen formulas) | `dev_unseen.json` | 4,183 | 26 | new-formula error during development |
+| Training pool P | `pool.json` | 99,198 | 497 | training |
+| Quantum unseen subset | `test_unseen_q.json` | 370 | 93 (≤ 5 each) | quantum inference (costs n_test × N circuits) |
+| Quantum familiar subset | `test_familiar_q.json` | 80 | 20 anchored formulas × 4 | quantum inference |
 
-## Splits (M1, PLAN §4)
+- Whole formulas form both unseen holdouts; the familiar test and development sets are random
+  molecules of the remaining formulas, sampled so that every formula keeps molecules in P.
+- **Training sets** S_(s,N), N = 100, 300, 1000, 3000, 10000, 30000 and 99,198 (the whole pool),
+  seeds 0, 1, 2: `train_order_s{seed}.json` lists P in fill order, and S_(s,N) is its first N IDs,
+  so the sets are nested by construction. The 20 anchored familiar formulas come first, so they are
+  in every set. N = 100, 300, 1000 are the quantum-comparable (Track B) sizes.
+- **Anchor skew:** the anchored formulas make up 15% of P but 27–40% of S_(s,100), 21–22% of
+  S_(s,300) and 17–18% of S_(s,1000) (X1: 9% of P, 43–50% of S_(s,100)).
+- Every split invariant (disjoint sets, held-out formulas absent from training, anchors, nesting,
+  exact sizes, unique IDs, no excluded ID, complete holdouts, every kept molecule in exactly one
+  set) is checked at build time and by `tests/test_splits.py`, each with a negative control.
 
-Config: `configs/splits.yaml` (config_hash `da596c9e207c`). Files are in `splits/`.
+## Data quality (exploration X2, `notebooks/explore_01_eda.ipynb`)
 
-| Set | Size | Notes |
-|---|---|---|
-| Unseen-formula test | 370 molecules | 93 of 616 formulas (15%, stratified by heavy-atom count), ≤5 molecules each |
-| Familiar-formula test | 80 molecules | 40 formulas × 2 |
-| Training pool P | 7,131 molecules | pool minus unseen formulas and the familiar test set |
-| Training sets S_(s,N) | N = 100, 300, 1000 | seeds 0, 1, 2; nested; each contains one anchor per familiar formula |
-
-Anchor skew: familiar formulas make up 9% of P but 43–50% of S_(s,100), 20–23% of S_(s,300),
-and 12–13% of S_(s,1000). See notebook 01 §5.
-
-## Data quality (exploration X1, `notebooks/explore_01_eda.ipynb`)
-
-Checked on the training pool P (7,131 molecules); the counts in brackets are for all 133,885 records.
+Checked on the training pool P (99,198 molecules).
 
 | Check | Result |
 |---|---|
 | missing values, array lengths, neutral charges (\|Σq\| ≤ 6e-6 e), μ ≥ 0 | all pass |
 | gap = lumo − homo; H − U = RT; U0 < U; G < H; A ≥ B ≥ C | all pass (gap to the file's 1e-4 Ha rounding) |
-| imaginary (negative) frequencies | none in P (5 in QM9, all already excluded: 6620, 59818, 87037, 117523, 129158) |
-| frequency lists printed twice (2 × (3n − 6) values, identical halves) | 25 in P (433); cleaning keeps the first copy |
+| imaginary (negative) frequencies | none (5 in QM9, all excluded: 6620, 59818, 87037, 117523, 129158) |
+| frequency lists printed twice (2 × (3n − 6) values, identical halves) | 255 in P (433 in QM9); cleaning keeps the first copy |
 | linear molecules (3n − 5 modes; QM9 stores A = 0 for the infinite constant) | 5, all in P |
-| geometric duplicates (same formula and Coulomb spectrum to 0.01; \|μ\| equal within 0.003 D) | 12 pairs in P (133 groups, 273 molecules among the kept 130,823). No training set holds both twins and none shares a molecule with a test set (unit-tested), so the splits are unchanged; pool-wide analyses keep one twin per pair |
-| same InChI | 171 groups in P, but 159 are tautomers (different molecules, \|μ\| up to 6.3 D apart): standard InChI is not an identity test here |
-| stored coordinate frames | arbitrary: centroids up to 6.8 Å from the origin, 6.9% aligned with the principal axes |
-
+| geometric duplicates | none left (removed before splitting) |
+| same InChI | 1,824 groups in P, all different geometries (tautomers, \|μ\| up to 8.5 D apart): standard InChI is not an identity test here |
+| stored coordinate frames | arbitrary: centroids up to 6.7 Å from the origin, 1.6% aligned with the principal axes |
+| target | mean 2.71 D, median 2.52 D; 41 exact zeros; 223 molecules (0.22%) at ≥ 9 D, up to 29.6 D (zwitterions, e.g. ID 123126 `[NH3]CCCCCC(=O)[O]`). Kept: valid computed values, but they weigh heavily on RMSE |

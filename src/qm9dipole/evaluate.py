@@ -17,6 +17,7 @@ Units: μ and every error in debye.
 from __future__ import annotations
 
 import json
+import re
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -317,7 +318,8 @@ def dev_curve(make_fitters: Callable[[int, int], dict], train_sets: dict[int, di
             for name, fitter in make_fitters(seed, n).items():
                 path = None
                 if cache_dir is not None:
-                    path = Path(cache_dir) / f"{name}_s{seed}_n{n}_{config_hash(fitter.config)}.pkl"
+                    safe = re.sub(r"[^A-Za-z0-9._+-]", "_", name)  # e.g. "ridge|all_legal": | is illegal on Windows
+                    path = Path(cache_dir) / f"{safe}_s{seed}_n{n}_{config_hash(fitter.config)}.pkl"
                 if path is not None and path.exists():
                     record = pickle.loads(path.read_bytes())
                 else:

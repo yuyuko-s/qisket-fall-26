@@ -139,13 +139,14 @@ def test_dev_curve_rows_and_cache(frame, tmp_path):
     est, grid = classical.build("ridge", 0)
 
     def make(seed, n):
-        return {"mean": MeanFitter(), "ridge": TabularFitter(X, est, grid, seed=seed)}
+        return {"mean": MeanFitter(), "ridge|all features": TabularFitter(X, est, grid, seed=seed)}
 
     rows, preds = dev_curve(make, train_sets, eval_sets, y, cache_dir=tmp_path, progress=False)
     assert len(rows) == 2 * 2 * 2 and set(rows["eval_set"]) == {"dev", "dev_unseen"}
     mean_row = rows[(rows["model"] == "mean") & (rows["n_train"] == 50) & (rows["eval_set"] == "dev")].iloc[0]
     assert mean_row["mae_D"] == pytest.approx(np.abs(y.iloc[:50].mean() - y.loc[eval_sets["dev"]]).mean())
-    assert preds[(0, 150, "ridge")]["dev"].index.equals(pd.Index(eval_sets["dev"]))
+    assert preds[(0, 150, "ridge|all features")]["dev"].index.equals(pd.Index(eval_sets["dev"]))
+    assert not any("|" in p.name or " " in p.name for p in tmp_path.glob("*.pkl"))  # names safe on Windows
     assert len(list(tmp_path.glob("*.pkl"))) == 4
     again, _ = dev_curve(make, train_sets, eval_sets, y, cache_dir=tmp_path, progress=False)
     pd.testing.assert_frame_equal(rows.drop(columns="fit_seconds"), again.drop(columns="fit_seconds"))
