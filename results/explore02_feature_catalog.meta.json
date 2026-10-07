@@ -1,5 +1,5 @@
 {
- "git_hash": "c595ec5caf7ddf8f269856eb6f7f7bb6472b0e39",
+ "git_hash": "e32ac194397fa9a3fa6d9fae811e7e23b715d68c",
  "versions": {
   "python": "3.12.14",
   "qiskit": "2.5.2",
@@ -19,6 +19,7 @@
   "duplicate_cm_decimals": 2,
   "redundancy_spearman": 0.99
  },
- "n_molecules": 7131,
- "label": "exploratory; feature catalog for the training pool P"
+ "n_molecules": 108381,
+ "n_atoms": 1939514,
+ "label": "exploratory; feature catalog (molecule and atom level) for the development universe"
 }

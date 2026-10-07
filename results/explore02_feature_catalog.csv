@@ -1,87 +1,324 @@
-feature,block,legal,kept,reason,description
-n_C,composition,True,True,,
-n_H,composition,True,True,,
-n_N,composition,True,True,,
-n_O,composition,True,True,,
-n_F,composition,True,True,,
-cm_01,cm,True,True,,
-cm_02,cm,True,True,,
-cm_03,cm,True,True,,
-cm_04,cm,True,True,,
-cm_05,cm,True,True,,
-cm_06,cm,True,True,,
-cm_07,cm,True,True,,
-cm_08,cm,True,True,,
-cm_09,cm,True,True,,
-cm_10,cm,True,True,,
-cm_11,cm,True,True,,
-cm_12,cm,True,True,,
-cm_13,cm,True,True,,
-cm_14,cm,True,True,,
-cm_15,cm,True,True,,
-cm_16,cm,True,True,,
-cm_17,cm,True,True,,
-cm_18,cm,True,True,,
-cm_19,cm,True,True,,
-cm_20,cm,True,True,,
-cm_21,cm,True,True,,
-cm_22,cm,True,True,,
-cm_23,cm,True,True,,
-cm_24,cm,True,True,,
-cm_25,cm,True,True,,
-cm_26,cm,True,True,,
-cm_27,cm,True,True,,
-cm_28,cm,True,True,,
-cm_29,cm,True,True,,
-radius_of_gyration,engineered,True,True,,
-gyration_moment_1,engineered,True,True,,
-gyration_moment_2,engineered,True,True,,
-gyration_moment_3,engineered,True,True,,
-max_distance,engineered,True,True,,
-heteroatom_offset,engineered,True,True,,
-bond_polarity_total,engineered,True,True,,
-bond_dipole_norm,engineered,True,True,,
-en_point_dipole,engineered,True,True,,
-bonds_C-C,engineered,True,True,,
-bonds_C-H,engineered,True,True,,
-bonds_C-N,engineered,True,True,,
-bonds_C-O,engineered,True,True,,
-bonds_C-F,engineered,True,False,redundant with n_F (|ρ| = 1.0000),
-bonds_H-H,engineered,True,False,zero variance in the pool,
-bonds_H-N,engineered,True,True,,
-bonds_H-O,engineered,True,True,,
-bonds_H-F,engineered,True,False,zero variance in the pool,
-bonds_N-N,engineered,True,True,,
-bonds_N-O,engineered,True,True,,
-bonds_N-F,engineered,True,False,zero variance in the pool,
-bonds_O-O,engineered,True,False,zero variance in the pool,
-bonds_O-F,engineered,True,False,zero variance in the pool,
-bonds_F-F,engineered,True,False,zero variance in the pool,
-triple_C-C,engineered,True,True,,
-triple_C-N,engineered,True,True,,
-multiple_C-N,engineered,True,True,,
-double_C-O,engineered,True,True,,
-double_N-O,engineered,True,True,,
-n_rings,engineered,True,True,,
-inertia_moment_1,engineered,True,True,,
-inertia_moment_2,engineered,True,True,,
-inertia_moment_3,engineered,True,True,,
-alpha,dft_property,False,True,,isotropic polarizability
-homo,dft_property,False,True,,highest occupied orbital energy
-lumo,dft_property,False,True,,lowest unoccupied orbital energy
-gap,dft_property,False,True,,lumo − homo
-r2,dft_property,False,True,,electronic spatial extent ⟨R²⟩
-zpve,dft_property,False,True,,zero-point vibrational energy
-U0,dft_property,False,True,,internal energy at 0 K
-U,dft_property,False,False,redundant with U0 (|ρ| = 1.0000),internal energy at 298.15 K
-H,dft_property,False,False,redundant with U0 (|ρ| = 1.0000),enthalpy at 298.15 K
-G,dft_property,False,False,redundant with U0 (|ρ| = 1.0000),free energy at 298.15 K
-Cv,dft_property,False,True,,heat capacity at 298.15 K
-charge_dipole_D,charge,False,True,,
-max_abs_charge,charge,False,True,,
-charge_separation,charge,False,True,,
-freq_lowest,frequency,False,True,,
-freq_highest,frequency,False,True,,
-freq_mean,frequency,False,True,,
-n_modes_above_2800,frequency,False,True,,
-n_modes_below_500,frequency,False,True,,
+feature,block,level,legal,kept,reason,description
+n_C,composition,molecule,True,True,,
+n_H,composition,molecule,True,True,,
+n_N,composition,molecule,True,True,,
+n_O,composition,molecule,True,True,,
+n_F,composition,molecule,True,True,,
+cm_01,cm,molecule,True,True,,
+cm_02,cm,molecule,True,True,,
+cm_03,cm,molecule,True,True,,
+cm_04,cm,molecule,True,True,,
+cm_05,cm,molecule,True,True,,
+cm_06,cm,molecule,True,True,,
+cm_07,cm,molecule,True,True,,
+cm_08,cm,molecule,True,True,,
+cm_09,cm,molecule,True,True,,
+cm_10,cm,molecule,True,True,,
+cm_11,cm,molecule,True,True,,
+cm_12,cm,molecule,True,True,,
+cm_13,cm,molecule,True,True,,
+cm_14,cm,molecule,True,True,,
+cm_15,cm,molecule,True,True,,
+cm_16,cm,molecule,True,True,,
+cm_17,cm,molecule,True,True,,
+cm_18,cm,molecule,True,True,,
+cm_19,cm,molecule,True,True,,
+cm_20,cm,molecule,True,True,,
+cm_21,cm,molecule,True,True,,
+cm_22,cm,molecule,True,True,,
+cm_23,cm,molecule,True,True,,
+cm_24,cm,molecule,True,True,,
+cm_25,cm,molecule,True,True,,
+cm_26,cm,molecule,True,True,,
+cm_27,cm,molecule,True,True,,
+cm_28,cm,molecule,True,True,,
+cm_29,cm,molecule,True,True,,
+radius_of_gyration,engineered,molecule,True,True,,
+gyration_moment_1,engineered,molecule,True,True,,
+gyration_moment_2,engineered,molecule,True,True,,
+gyration_moment_3,engineered,molecule,True,True,,
+max_distance,engineered,molecule,True,True,,
+heteroatom_offset,engineered,molecule,True,True,,
+bond_polarity_total,engineered,molecule,True,True,,
+bond_dipole_norm,engineered,molecule,True,True,,
+en_point_dipole,engineered,molecule,True,True,,
+bonds_C-C,engineered,molecule,True,True,,
+bonds_C-H,engineered,molecule,True,True,,
+bonds_C-N,engineered,molecule,True,True,,
+bonds_C-O,engineered,molecule,True,True,,
+bonds_C-F,engineered,molecule,True,False,redundant with n_F (|ρ| = 1.0000; on non-zero rows 1.0000),
+bonds_H-H,engineered,molecule,True,False,zero variance in the pool,
+bonds_H-N,engineered,molecule,True,True,,
+bonds_H-O,engineered,molecule,True,True,,
+bonds_H-F,engineered,molecule,True,False,zero variance in the pool,
+bonds_N-N,engineered,molecule,True,True,,
+bonds_N-O,engineered,molecule,True,True,,
+bonds_N-F,engineered,molecule,True,False,zero variance in the pool,
+bonds_O-O,engineered,molecule,True,False,zero variance in the pool,
+bonds_O-F,engineered,molecule,True,False,zero variance in the pool,
+bonds_F-F,engineered,molecule,True,False,zero variance in the pool,
+triple_C-C,engineered,molecule,True,True,,
+triple_C-N,engineered,molecule,True,True,,
+multiple_C-N,engineered,molecule,True,True,,
+double_C-O,engineered,molecule,True,True,,
+double_N-O,engineered,molecule,True,True,,
+n_rings,engineered,molecule,True,True,,
+inertia_moment_1,engineered,molecule,True,True,,
+inertia_moment_2,engineered,molecule,True,True,,
+inertia_moment_3,engineered,molecule,True,True,,
+atoms_C1,groups,molecule,True,False,zero variance in the pool,
+atoms_C2,groups,molecule,True,True,,
+atoms_C3,groups,molecule,True,True,,
+atoms_C4,groups,molecule,True,True,,
+atoms_N1,groups,molecule,True,True,,
+atoms_N2,groups,molecule,True,True,,
+atoms_N3,groups,molecule,True,True,,
+atoms_N4,groups,molecule,True,True,,
+atoms_O1,groups,molecule,True,True,,
+atoms_O2,groups,molecule,True,True,,
+ring3_atoms,groups,molecule,True,True,,
+ring4_atoms,groups,molecule,True,True,,
+ring5_atoms,groups,molecule,True,True,,
+ring6_atoms,groups,molecule,True,True,,
+ring7plus_atoms,groups,molecule,True,True,,
+n_ammonium,groups,molecule,True,False,redundant with atoms_N4 (|ρ| = 1.0000; on non-zero rows 1.0000),
+n_carboxylate,groups,molecule,True,True,,
+n_nitro_like,groups,molecule,True,True,,
+zwitterion,groups,molecule,True,True,,
+n_N3_planar,groups,molecule,True,True,,
+n_N3_pyramidal,groups,molecule,True,True,,
+qeq_dipole_D,qeq,molecule,True,True,,
+qeq_max_abs_charge,qeq,molecule,True,True,,
+qeq_charge_separation,qeq,molecule,True,True,,
+rdf_CC_0.90,rdf,molecule,True,True,,
+rdf_CC_1.44,rdf,molecule,True,False,redundant with bonds_C-C (|ρ| = 0.9901; on non-zero rows 0.9900),
+rdf_CC_1.99,rdf,molecule,True,True,,
+rdf_CC_2.53,rdf,molecule,True,True,,
+rdf_CC_3.07,rdf,molecule,True,True,,
+rdf_CC_3.61,rdf,molecule,True,True,,
+rdf_CC_4.16,rdf,molecule,True,True,,
+rdf_CC_4.70,rdf,molecule,True,True,,
+rdf_CH_0.90,rdf,molecule,True,False,redundant with bonds_C-H (|ρ| = 0.9946; on non-zero rows 0.9946),
+rdf_CH_1.44,rdf,molecule,True,True,,
+rdf_CH_1.99,rdf,molecule,True,True,,
+rdf_CH_2.53,rdf,molecule,True,True,,
+rdf_CH_3.07,rdf,molecule,True,True,,
+rdf_CH_3.61,rdf,molecule,True,True,,
+rdf_CH_4.16,rdf,molecule,True,True,,
+rdf_CH_4.70,rdf,molecule,True,True,,
+rdf_CN_0.90,rdf,molecule,True,True,,
+rdf_CN_1.44,rdf,molecule,True,True,,
+rdf_CN_1.99,rdf,molecule,True,True,,
+rdf_CN_2.53,rdf,molecule,True,True,,
+rdf_CN_3.07,rdf,molecule,True,True,,
+rdf_CN_3.61,rdf,molecule,True,True,,
+rdf_CN_4.16,rdf,molecule,True,True,,
+rdf_CN_4.70,rdf,molecule,True,True,,
+rdf_CO_0.90,rdf,molecule,True,True,,
+rdf_CO_1.44,rdf,molecule,True,True,,
+rdf_CO_1.99,rdf,molecule,True,True,,
+rdf_CO_2.53,rdf,molecule,True,True,,
+rdf_CO_3.07,rdf,molecule,True,True,,
+rdf_CO_3.61,rdf,molecule,True,True,,
+rdf_CO_4.16,rdf,molecule,True,True,,
+rdf_CO_4.70,rdf,molecule,True,True,,
+rdf_CF_0.90,rdf,molecule,True,True,,
+rdf_CF_1.44,rdf,molecule,True,True,,
+rdf_CF_1.99,rdf,molecule,True,True,,
+rdf_CF_2.53,rdf,molecule,True,True,,
+rdf_CF_3.07,rdf,molecule,True,True,,
+rdf_CF_3.61,rdf,molecule,True,True,,
+rdf_CF_4.16,rdf,molecule,True,True,,
+rdf_CF_4.70,rdf,molecule,True,True,,
+rdf_HH_0.90,rdf,molecule,True,True,,
+rdf_HH_1.44,rdf,molecule,True,False,redundant with rdf_HH_0.90 (|ρ| = 0.9935; on non-zero rows 0.9934),
+rdf_HH_1.99,rdf,molecule,True,True,,
+rdf_HH_2.53,rdf,molecule,True,True,,
+rdf_HH_3.07,rdf,molecule,True,True,,
+rdf_HH_3.61,rdf,molecule,True,True,,
+rdf_HH_4.16,rdf,molecule,True,True,,
+rdf_HH_4.70,rdf,molecule,True,True,,
+rdf_HN_0.90,rdf,molecule,True,True,,
+rdf_HN_1.44,rdf,molecule,True,True,,
+rdf_HN_1.99,rdf,molecule,True,True,,
+rdf_HN_2.53,rdf,molecule,True,True,,
+rdf_HN_3.07,rdf,molecule,True,True,,
+rdf_HN_3.61,rdf,molecule,True,True,,
+rdf_HN_4.16,rdf,molecule,True,True,,
+rdf_HN_4.70,rdf,molecule,True,True,,
+rdf_HO_0.90,rdf,molecule,True,True,,
+rdf_HO_1.44,rdf,molecule,True,True,,
+rdf_HO_1.99,rdf,molecule,True,True,,
+rdf_HO_2.53,rdf,molecule,True,True,,
+rdf_HO_3.07,rdf,molecule,True,True,,
+rdf_HO_3.61,rdf,molecule,True,True,,
+rdf_HO_4.16,rdf,molecule,True,True,,
+rdf_HO_4.70,rdf,molecule,True,True,,
+rdf_HF_0.90,rdf,molecule,True,True,,
+rdf_HF_1.44,rdf,molecule,True,False,redundant with rdf_HF_0.90 (|ρ| = 1.0000; on non-zero rows 0.9928),
+rdf_HF_1.99,rdf,molecule,True,True,,
+rdf_HF_2.53,rdf,molecule,True,True,,
+rdf_HF_3.07,rdf,molecule,True,True,,
+rdf_HF_3.61,rdf,molecule,True,True,,
+rdf_HF_4.16,rdf,molecule,True,True,,
+rdf_HF_4.70,rdf,molecule,True,True,,
+rdf_NN_0.90,rdf,molecule,True,True,,
+rdf_NN_1.44,rdf,molecule,True,False,redundant with rdf_NN_0.90 (|ρ| = 0.9999; on non-zero rows 0.9958),
+rdf_NN_1.99,rdf,molecule,True,True,,
+rdf_NN_2.53,rdf,molecule,True,True,,
+rdf_NN_3.07,rdf,molecule,True,True,,
+rdf_NN_3.61,rdf,molecule,True,True,,
+rdf_NN_4.16,rdf,molecule,True,True,,
+rdf_NN_4.70,rdf,molecule,True,True,,
+rdf_NO_0.90,rdf,molecule,True,True,,
+rdf_NO_1.44,rdf,molecule,True,False,redundant with rdf_NO_0.90 (|ρ| = 0.9997; on non-zero rows 0.9984),
+rdf_NO_1.99,rdf,molecule,True,True,,
+rdf_NO_2.53,rdf,molecule,True,True,,
+rdf_NO_3.07,rdf,molecule,True,True,,
+rdf_NO_3.61,rdf,molecule,True,True,,
+rdf_NO_4.16,rdf,molecule,True,True,,
+rdf_NO_4.70,rdf,molecule,True,True,,
+rdf_NF_0.90,rdf,molecule,True,True,,
+rdf_NF_1.44,rdf,molecule,True,False,redundant with rdf_NF_0.90 (|ρ| = 1.0000; on non-zero rows 0.9996),
+rdf_NF_1.99,rdf,molecule,True,True,,
+rdf_NF_2.53,rdf,molecule,True,True,,
+rdf_NF_3.07,rdf,molecule,True,True,,
+rdf_NF_3.61,rdf,molecule,True,True,,
+rdf_NF_4.16,rdf,molecule,True,True,,
+rdf_NF_4.70,rdf,molecule,True,True,,
+rdf_OO_0.90,rdf,molecule,True,True,,
+rdf_OO_1.44,rdf,molecule,True,False,redundant with rdf_OO_0.90 (|ρ| = 1.0000; on non-zero rows 0.9999),
+rdf_OO_1.99,rdf,molecule,True,False,redundant with rdf_OO_0.90 (|ρ| = 0.9999; on non-zero rows 0.9988),
+rdf_OO_2.53,rdf,molecule,True,True,,
+rdf_OO_3.07,rdf,molecule,True,True,,
+rdf_OO_3.61,rdf,molecule,True,True,,
+rdf_OO_4.16,rdf,molecule,True,True,,
+rdf_OO_4.70,rdf,molecule,True,True,,
+rdf_OF_0.90,rdf,molecule,True,True,,
+rdf_OF_1.44,rdf,molecule,True,False,redundant with rdf_OF_0.90 (|ρ| = 1.0000; on non-zero rows 0.9990),
+rdf_OF_1.99,rdf,molecule,True,False,redundant with rdf_OF_0.90 (|ρ| = 1.0000; on non-zero rows 0.9933),
+rdf_OF_2.53,rdf,molecule,True,True,,
+rdf_OF_3.07,rdf,molecule,True,True,,
+rdf_OF_3.61,rdf,molecule,True,True,,
+rdf_OF_4.16,rdf,molecule,True,True,,
+rdf_OF_4.70,rdf,molecule,True,True,,
+rdf_FF_0.90,rdf,molecule,True,True,,
+rdf_FF_1.44,rdf,molecule,True,False,redundant with rdf_FF_0.90 (|ρ| = 1.0000; on non-zero rows 0.9999),
+rdf_FF_1.99,rdf,molecule,True,False,redundant with rdf_FF_0.90 (|ρ| = 1.0000; on non-zero rows 0.9997),
+rdf_FF_2.53,rdf,molecule,True,True,,
+rdf_FF_3.07,rdf,molecule,True,True,,
+rdf_FF_3.61,rdf,molecule,True,True,,
+rdf_FF_4.16,rdf,molecule,True,True,,
+rdf_FF_4.70,rdf,molecule,True,False,redundant with rdf_FF_4.16 (|ρ| = 1.0000; on non-zero rows 0.9996),
+alpha,dft_property,molecule,False,True,,isotropic polarizability
+homo,dft_property,molecule,False,True,,highest occupied orbital energy
+lumo,dft_property,molecule,False,True,,lowest unoccupied orbital energy
+gap,dft_property,molecule,False,True,,lumo − homo
+r2,dft_property,molecule,False,True,,electronic spatial extent ⟨R²⟩
+zpve,dft_property,molecule,False,True,,zero-point vibrational energy
+U0,dft_property,molecule,False,True,,internal energy at 0 K
+U,dft_property,molecule,False,False,redundant with U0 (|ρ| = 1.0000; on non-zero rows nan),internal energy at 298.15 K
+H,dft_property,molecule,False,False,redundant with U0 (|ρ| = 1.0000; on non-zero rows nan),enthalpy at 298.15 K
+G,dft_property,molecule,False,False,redundant with U0 (|ρ| = 1.0000; on non-zero rows nan),free energy at 298.15 K
+Cv,dft_property,molecule,False,True,,heat capacity at 298.15 K
+charge_dipole_D,charge,molecule,False,True,,
+max_abs_charge,charge,molecule,False,True,,
+charge_separation,charge,molecule,False,True,,
+freq_lowest,frequency,molecule,False,True,,
+freq_highest,frequency,molecule,False,True,,
+freq_mean,frequency,molecule,False,True,,
+n_modes_above_2800,frequency,molecule,False,False,redundant with zpve (|ρ| = 0.9914; on non-zero rows nan),
+n_modes_below_500,frequency,molecule,False,True,,
+is_C,atom,atom,True,True,,per-atom environment (atoms.py)
+is_H,atom,atom,True,True,,per-atom environment (atoms.py)
+is_N,atom,atom,True,True,,per-atom environment (atoms.py)
+is_O,atom,atom,True,True,,per-atom environment (atoms.py)
+is_F,atom,atom,True,True,,per-atom environment (atoms.py)
+degree,atom,atom,True,True,,per-atom environment (atoms.py)
+bonded_C,atom,atom,True,True,,per-atom environment (atoms.py)
+bonded_H,atom,atom,True,True,,per-atom environment (atoms.py)
+bonded_N,atom,atom,True,True,,per-atom environment (atoms.py)
+bonded_O,atom,atom,True,True,,per-atom environment (atoms.py)
+bonded_F,atom,atom,True,True,,per-atom environment (atoms.py)
+bond_triple_C-C,atom,atom,True,True,,per-atom environment (atoms.py)
+bond_triple_C-N,atom,atom,True,True,,per-atom environment (atoms.py)
+bond_multiple_C-N,atom,atom,True,True,,per-atom environment (atoms.py)
+bond_double_C-O,atom,atom,True,True,,per-atom environment (atoms.py)
+bond_double_N-O,atom,atom,True,True,,per-atom environment (atoms.py)
+shell2_C,atom,atom,True,True,,per-atom environment (atoms.py)
+shell2_H,atom,atom,True,True,,per-atom environment (atoms.py)
+shell2_N,atom,atom,True,True,,per-atom environment (atoms.py)
+shell2_O,atom,atom,True,True,,per-atom environment (atoms.py)
+shell2_F,atom,atom,True,True,,per-atom environment (atoms.py)
+shell3_C,atom,atom,True,True,,per-atom environment (atoms.py)
+shell3_H,atom,atom,True,True,,per-atom environment (atoms.py)
+shell3_N,atom,atom,True,True,,per-atom environment (atoms.py)
+shell3_O,atom,atom,True,True,,per-atom environment (atoms.py)
+shell3_F,atom,atom,True,True,,per-atom environment (atoms.py)
+smallest_ring,atom,atom,True,True,,per-atom environment (atoms.py)
+pyramid_height,atom,atom,True,True,,per-atom environment (atoms.py)
+bond_vector_asymmetry,atom,atom,True,True,,per-atom environment (atoms.py)
+local_bond_dipole,atom,atom,True,True,,per-atom environment (atoms.py)
+angle_cos_mean,atom,atom,True,True,,per-atom environment (atoms.py)
+angle_cos_min,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_C_0.90,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_C_1.44,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_C_1.99,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_C_2.53,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_C_3.07,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_C_3.61,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_C_4.16,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_C_4.70,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_H_0.90,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_H_1.44,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_H_1.99,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_H_2.53,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_H_3.07,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_H_3.61,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_H_4.16,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_H_4.70,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_N_0.90,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_N_1.44,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_N_1.99,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_N_2.53,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_N_3.07,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_N_3.61,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_N_4.16,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_N_4.70,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_O_0.90,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_O_1.44,atom,atom,True,False,redundant with radial_O_0.90 (|ρ| = 0.9968; on non-zero rows 0.9936),per-atom environment (atoms.py)
+radial_O_1.99,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_O_2.53,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_O_3.07,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_O_3.61,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_O_4.16,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_O_4.70,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_F_0.90,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_F_1.44,atom,atom,True,False,redundant with radial_F_0.90 (|ρ| = 1.0000; on non-zero rows 0.9988),per-atom environment (atoms.py)
+radial_F_1.99,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_F_2.53,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_F_3.07,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_F_3.61,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_F_4.16,atom,atom,True,True,,per-atom environment (atoms.py)
+radial_F_4.70,atom,atom,True,True,,per-atom environment (atoms.py)
+moment_C_1.25,atom,atom,True,True,,per-atom environment (atoms.py)
+moment_C_2.50,atom,atom,True,True,,per-atom environment (atoms.py)
+moment_C_3.75,atom,atom,True,True,,per-atom environment (atoms.py)
+moment_H_1.25,atom,atom,True,True,,per-atom environment (atoms.py)
+moment_H_2.50,atom,atom,True,True,,per-atom environment (atoms.py)
+moment_H_3.75,atom,atom,True,True,,per-atom environment (atoms.py)
+moment_N_1.25,atom,atom,True,False,redundant with radial_N_0.90 (|ρ| = 0.9993; on non-zero rows 0.9962),per-atom environment (atoms.py)
+moment_N_2.50,atom,atom,True,True,,per-atom environment (atoms.py)
+moment_N_3.75,atom,atom,True,False,redundant with radial_N_3.61 (|ρ| = 0.9993; on non-zero rows 0.9963),per-atom environment (atoms.py)
+moment_O_1.25,atom,atom,True,False,redundant with radial_O_0.90 (|ρ| = 0.9988; on non-zero rows 0.9977),per-atom environment (atoms.py)
+moment_O_2.50,atom,atom,True,True,,per-atom environment (atoms.py)
+moment_O_3.75,atom,atom,True,False,redundant with radial_O_3.61 (|ρ| = 0.9972; on non-zero rows 0.9943),per-atom environment (atoms.py)
+moment_F_1.25,atom,atom,True,False,redundant with radial_F_0.90 (|ρ| = 1.0000; on non-zero rows 0.9976),per-atom environment (atoms.py)
+moment_F_2.50,atom,atom,True,True,,per-atom environment (atoms.py)
+moment_F_3.75,atom,atom,True,False,redundant with radial_F_3.61 (|ρ| = 1.0000; on non-zero rows 0.9958),per-atom environment (atoms.py)
+qeq_charge,atom,atom,True,True,,per-atom environment (atoms.py)
+qeq_potential,atom,atom,True,True,,per-atom environment (atoms.py)
+nuclear_potential,atom,atom,True,True,,per-atom environment (atoms.py)
+ammonium_N,atom,atom,True,True,,per-atom environment (atoms.py)
+terminal_O_neighbours,atom,atom,True,True,,per-atom environment (atoms.py)
+centroid_distance,atom,atom,True,True,,per-atom environment (atoms.py)
