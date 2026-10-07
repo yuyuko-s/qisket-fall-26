@@ -29,3 +29,15 @@ def test_integrity_checks_count_violations():
 def test_per_molecule_summaries():
     s = per_molecule_summaries(pd.DataFrame([parse_xyz(METHANE)])).iloc[0]
     assert (s["n_C"], s["n_H"], s["n_freqs_listed"], s["n_freqs_expected"]) == (1, 4, 9, 9)
+
+
+def test_natural_features_are_the_fields_qm9_gives_directly():
+    from qm9dipole.eda import DFT, FROM_ZR, NATURAL_FEATURES, natural_features, natural_role
+
+    m = parse_xyz(METHANE)
+    nat = natural_features(pd.DataFrame([m]))
+    assert list(nat.columns) == list(NATURAL_FEATURES) and len(NATURAL_FEATURES) == 21
+    assert "mu" not in nat.columns  # the target is never a feature
+    row = nat.loc[1]
+    assert (row["n_atoms"], row["n_C"], row["n_H"], row["A"]) == (5, 1, 4, m["A"])
+    assert natural_role("n_O") == FROM_ZR and natural_role("B") == FROM_ZR and natural_role("alpha") == DFT

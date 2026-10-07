@@ -1,7 +1,7 @@
 {
- "git_hash": "5db83452184bdaf708794af5486c43e1dc3b8c24",
+ "git_hash": "f88fca16d1be5589b2748c509274caa55e7ad64d-dirty",
  "versions": {
-  "python": "3.12.14",
+  "python": "3.12.3",
   "qiskit": "2.5.2",
   "qiskit-aer": "0.17.2",
   "qiskit-ibm-runtime": "0.50.0",
@@ -15,5 +15,5 @@
   "xgboost": "3.4.1",
   "pytest": "9.1.1"
  },
- "label": "exploratory; legal inputs; CV inside S_(s,N)"
+ "label": "exploratory; legal inputs; Track B CV inside S_(s,N); Track A dev set"
 }

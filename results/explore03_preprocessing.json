@@ -1,51 +1,113 @@
 {
- "scaling": "yeo_johnson",
- "target": "sqrt",
- "rule": "lowest mean CV MAE over all paired (model, feature set, seed, N) cells",
- "scaling_cv_mean_mae": {
-  "standard": 1.04682,
-  "robust": 1.04598,
-  "log_standard": 1.03161,
-  "yeo_johnson": 1.02466,
-  "quantile_normal": 1.04382
+ "scaling": {
+  "track_b": "yeo_johnson",
+  "track_a": "log_standard"
  },
- "target_cv_mean_mae": {
-  "standard": 0.80894,
-  "sqrt": 0.79741,
-  "log1p": 0.8006
+ "target": {
+  "track_b": "sqrt",
+  "track_a": "standard"
  },
- "n_qubits": 8,
- "variance_kept_by_n_qubits": {
-  "Coulomb spectrum (29)": 0.8825,
-  "structure (31)": 0.7756,
-  "cm+structure (60)": 0.7346
+ "reduction": {
+  "method": "pls",
+  "k": 10,
+  "chosen_at_n": 1000,
+  "per_method": {
+   "kbest": {
+    "min_mae": 0.5098032431643323,
+    "k_at_min": 32,
+    "k_one_se": 32,
+    "mae_at_k_one_se": 0.5098032431643323
+   },
+   "pca": {
+    "min_mae": 0.5707936335876161,
+    "k_at_min": 32,
+    "k_one_se": 32,
+    "mae_at_k_one_se": 0.5707936335876161
+   },
+   "pls": {
+    "min_mae": 0.49178278932311964,
+    "k_at_min": 24,
+    "k_one_se": 10,
+    "mae_at_k_one_se": 0.49944980355783586
+   }
+  }
  },
+ "rules": {
+  "scaling_and_target": "lowest mean MAE over the paired cells of each track (CV for Track B, dev set for Track A)",
+  "reduction": "at the largest Track B size, the method with the lowest minimum mean CV MAE (RBF kernel ridge); k = smallest within one standard error over seeds of that minimum"
+ },
+ "scaling_mean_mae": {
+  "track_b": {
+   "standard": 288.6612,
+   "robust": 0.67691,
+   "log_standard": 294.47462,
+   "yeo_johnson": 0.57713,
+   "quantile_normal": 0.62008
+  },
+  "track_a": {
+   "standard": 0.45235,
+   "robust": 0.49644,
+   "log_standard": 0.4447,
+   "yeo_johnson": 0.45677,
+   "quantile_normal": 0.46023
+  }
+ },
+ "target_mean_mae": {
+  "track_b": {
+   "standard": 0.57631,
+   "sqrt": 0.57515,
+   "log1p": 0.58195
+  },
+  "track_a": {
+   "standard": 0.42083,
+   "sqrt": 0.42261,
+   "log1p": 0.43349
+  }
+ },
+ "kbest_features": [
+  "heteroatom_offset",
+  "bond_polarity_total",
+  "bond_dipole_norm",
+  "en_point_dipole",
+  "atoms_C4",
+  "qeq_dipole_D",
+  "qeq_max_abs_charge",
+  "rdf_CN_0.90",
+  "rdf_CO_1.44",
+  "cm_16"
+ ],
  "effective_dimension": [
   {
    "feature set": "composition",
    "features": 5,
-   "participation ratio": 3.46,
+   "participation ratio": 3.2,
    "k for 95%": 4
   },
   {
    "feature set": "cm",
    "features": 29,
-   "participation ratio": 4.68,
-   "k for 95%": 15
+   "participation ratio": 6.05,
+   "k for 95%": 17
   },
   {
    "feature set": "structure",
    "features": 31,
-   "participation ratio": 9.31,
+   "participation ratio": 9.57,
    "k for 95%": 16
   },
   {
-   "feature set": "cm+structure",
-   "features": 60,
-   "participation ratio": 8.5,
-   "k for 95%": 27
+   "feature set": "structure+",
+   "features": 53,
+   "participation ratio": 13.07,
+   "k for 95%": 23
+  },
+  {
+   "feature set": "all_legal",
+   "features": 188,
+   "participation ratio": 13.0,
+   "k for 95%": 57
   }
  ],
- "config_hash": "af905088d623",
- "git_hash": "5db83452184bdaf708794af5486c43e1dc3b8c24"
+ "config_hash": "9c69650d620d",
+ "git_hash": "f88fca16d1be5589b2748c509274caa55e7ad64d-dirty"
 }

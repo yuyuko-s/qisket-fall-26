@@ -69,3 +69,17 @@ def test_feature_frame_is_indexed_by_id_with_names():
     assert list(frame.index) == [7, 9] and list(frame.columns) == feature_names("composition")
     assert frame.loc[9, "n_H"] == 4
     assert feature_frame(table, "cm_spectrum").shape == (2, 29)
+
+
+def test_rank_features_puts_the_informative_feature_first():
+    from qm9dipole.analysis import rank_features
+
+    rng = np.random.default_rng(3)
+    x = rng.normal(size=2000)
+    X = pd.DataFrame({"noise": rng.normal(size=2000), "signal": x, "weak": x + 3 * rng.normal(size=2000),
+                      "constant": 1.0})
+    y = pd.Series(5 - 2 * x + 0.1 * rng.normal(size=2000))
+    ranked = rank_features(X, y, n_jobs=1)
+    assert ranked.index.tolist() == ["signal", "weak", "noise"]  # constant dropped: no information
+    assert ranked["rank"].tolist() == [1, 2, 3]
+    assert ranked.loc["signal", "Spearman ρ"] < -0.99  # direction: y falls as x rises

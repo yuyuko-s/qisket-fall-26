@@ -58,6 +58,33 @@ SCALAR_PROPERTIES: tuple[str, ...] = (
 )
 
 
+#: Numbers QM9 provides directly, one per molecule, usable as features without engineering:
+#: the counts read off the atom list and the 14 computed properties besides μ. Per-atom
+#: arrays (coordinates, charges, frequencies) need engineering to become fixed-length
+#: features, so they are not "natural" here.
+NATURAL_FEATURES: tuple[str, ...] = (
+    "n_atoms", "n_heavy", *(f"n_{e}" for e in COMPOSITION_ELEMENTS),
+    *(p for p in SCALAR_PROPERTIES if p != "mu"),
+)
+
+
+def natural_features(table: pd.DataFrame) -> pd.DataFrame:
+    """NATURAL_FEATURES for the rows of the parsed table, indexed by molecule id."""
+    counts = np.stack([composition(z) for z in table["Z"]])
+    out = table[["n_atoms", "n_heavy", *(p for p in SCALAR_PROPERTIES if p != "mu")]].copy()
+    for k, e in enumerate(COMPOSITION_ELEMENTS):
+        out[f"n_{e}"] = counts[:, k]
+    out.index = pd.Index(table["id"].to_numpy(), name="id")
+    return out[list(NATURAL_FEATURES)]
+
+
+def natural_role(feature: str) -> str:
+    """Role of a natural feature (CLAUDE.md rule 1): counts and the rotational constants are
+    functions of Z and R; the electronic and thermal properties are DFT outputs."""
+    roles = {row[0]: row[4] for row in DATA_DICTIONARY}
+    return FROM_ZR if feature.startswith("n_") else roles[feature]
+
+
 def data_dictionary() -> pd.DataFrame:
     return pd.DataFrame(DATA_DICTIONARY, columns=["column", "per", "unit", "meaning", "role"])
 

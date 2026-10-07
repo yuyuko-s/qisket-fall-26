@@ -40,6 +40,28 @@ def formula_variance(y: pd.Series, formula: pd.Series, min_count: int = 5) -> di
     }
 
 
+def rank_features(X: pd.DataFrame, y: pd.Series, random_state: int = 0, n_jobs: int = -1) -> pd.DataFrame:
+    """How well each feature *on its own* predicts y, most informative first.
+
+    - MI (nats): mutual information, a k-nearest-neighbour estimate of any dependence,
+      linear or not (0 = independent). The ranking key.
+    - Spearman ρ: monotone association; its sign gives the direction.
+    Constant columns are dropped. Univariate: a feature that only helps in combination ranks
+    low, and near-copies of one feature rank side by side.
+    """
+    from sklearn.feature_selection import mutual_info_regression
+
+    X = X.loc[:, X.nunique() > 1]
+    y = y.loc[X.index]
+    mi = mutual_info_regression(X.to_numpy(dtype=np.float64), y.to_numpy(dtype=np.float64),
+                                random_state=random_state, n_jobs=n_jobs)
+    out = pd.DataFrame({"MI (nats)": mi, "Spearman ρ": X.corrwith(y, method="spearman")}, index=X.columns)
+    out = out.sort_values("MI (nats)", ascending=False, kind="stable")
+    out.insert(0, "rank", np.arange(1, len(out) + 1))
+    out.index.name = "feature"
+    return out
+
+
 def pca_cv_curve(X: np.ndarray, y: np.ndarray, ks: list[int], folds: Folds, model: str = "ridge",
                  seed: int = 0, n_jobs: int = -1, scaling: str = "standard",
                  target: str = "standard") -> pd.DataFrame:
