@@ -26,8 +26,36 @@ standardization:
   target_candidates: [standard, sqrt, log1p]
 
 quantum:
-  # The compressed variant keeps one principal component per qubit.
-  n_qubits: 8
   # Report the share of scaled feature values beyond +-this many standard deviations:
   # rotation angles gamma * x wrap around, so far outliers alias onto ordinary values.
+  # (X1 fixed n_qubits: 8 here; X2 chooses the number of inputs by CV in explore_03.)
   angle_sigma: 3
+
+track_a:
+  # Exact kernel ridge costs O(N^3) time and O(N^2) memory: run it up to this training size.
+  krr_max_n: 10000
+  # XGBoost randomized-search draws (models/fitters.XGBFitter), by training size.
+  xgb_iter: {small: 20, large: 10}   # small: N <= 10000
+  xgb_large_n: 10000
+
+charge_model:
+  # Architecture search for the latent-charge network (models/charge.py), on the inner
+  # validation split of S_(0, selection_n); the winner runs at every N. Settings shared by
+  # every candidate first, then each candidate's own.
+  selection_n: 10000
+  common: {loss: mae, lr: 0.002, weight_decay: 1.0e-4, batch_size: 64, max_epochs: 300,
+           patience: 30, lr_patience: 10, max_steps: 120000}
+  candidates:
+    linear:              {hidden: [], message_passing: 0, atomic_dipoles: false}
+    linear+dipoles:      {hidden: [], message_passing: 0, atomic_dipoles: true}
+    mlp:                 {hidden: [128, 64], message_passing: 0, atomic_dipoles: true}
+    mp2:                 {hidden: [128, 64], message_passing: 2, atomic_dipoles: true}
+    mp3:                 {hidden: [128, 64], message_passing: 3, atomic_dipoles: true}
+    mp2-no-dipoles:      {hidden: [128, 64], message_passing: 2, atomic_dipoles: false}
+    mp3-narrow:          {hidden: [64, 64], message_passing: 3, atomic_dipoles: true}
+    mp2-mse:             {hidden: [128, 64], message_passing: 2, atomic_dipoles: true, loss: mse}
+
+track_b:
+  # Matched baselines for a k-qubit model: RBF kernel ridge on k reduced inputs, at these k.
+  matched_k: [4, 6, 8, 12, 16]
+  models: [mean, ridge, rbf_krr, rf, xgb]

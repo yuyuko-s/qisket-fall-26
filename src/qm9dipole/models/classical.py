@@ -32,11 +32,11 @@ training set and fold only.
 
 from __future__ import annotations
 
-import numpy as np
-from sklearn.compose import TransformedTargetRegressor
 from functools import partial
 
+import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.compose import TransformedTargetRegressor
 from sklearn.cross_decomposition import PLSRegression
 from sklearn.decomposition import PCA
 from sklearn.dummy import DummyRegressor

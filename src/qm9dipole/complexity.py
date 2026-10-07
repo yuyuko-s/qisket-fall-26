@@ -85,6 +85,15 @@ def kernel_ridge_df(K: np.ndarray, alpha: float) -> float:
     return float(1 + np.trace(A) - A.sum() / n)
 
 
+def _supervised(step) -> bool:
+    """True for feature steps fit with the target (partial least squares, univariate selection)."""
+    from sklearn.feature_selection import SelectKBest
+
+    from qm9dipole.models.classical import PLSScores
+
+    return isinstance(step, (PLSScores, SelectKBest))
+
+
 def smoother_df(fitted: BaseEstimator, X: np.ndarray) -> float | None:
     """Exact df of a fitted estimator (a `models.classical` TransformedTargetRegressor, or its
     feature pipeline) if its final model is a linear smoother (mean, OLS, ridge, RBF kernel
@@ -95,6 +104,8 @@ def smoother_df(fitted: BaseEstimator, X: np.ndarray) -> float | None:
     on X and the hyperparameters only, not on y.
     """
     pipe = fitted.regressor_ if isinstance(fitted, TransformedTargetRegressor) else fitted
+    if any(_supervised(step) for _, step in getattr(pipe, "steps", [])[:-1]):
+        return None  # a step chose its inputs using y: tr(S) given those inputs would understate df
     model = pipe[-1]
     Xt = pipe[:-1].transform(X) if len(pipe) > 1 else np.asarray(X, dtype=np.float64)
     if isinstance(model, DummyRegressor):

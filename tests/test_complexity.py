@@ -87,3 +87,19 @@ def test_monte_carlo_df_agrees_with_exact_ridge():
     estimate, se = monte_carlo_df(est, X, y, np.random.default_rng(5), n_rep=40, n_jobs=1)
     assert abs(estimate - exact) < 4 * se + 0.5
     assert smoother_df(classical.build("rf", seed=0)[0].fit(X, y), X) is None  # not a smoother
+
+
+def test_supervised_reductions_use_monte_carlo_df():
+    # PLS chooses its directions with y, so tr(S) given the chosen inputs would understate df.
+    from qm9dipole.complexity import effective_df
+    from qm9dipole.models import classical
+
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(80, 10))
+    y = 3 + X[:, 0] + 0.1 * rng.normal(size=80)
+    est, _ = classical.build("ridge", 0, reduction=("pls", 3))
+    _, _, method = effective_df(est.set_params(regressor__model__alpha=1.0), X, y, rng, n_rep=5, n_jobs=1)
+    assert method.startswith("Monte Carlo")
+    est, _ = classical.build("ridge", 0, reduction=("pca", 3))
+    df, _, method = effective_df(est.set_params(regressor__model__alpha=1.0), X, y, rng, n_rep=5, n_jobs=1)
+    assert method == "exact tr(S)" and 1 < df < 4 + 1e-9

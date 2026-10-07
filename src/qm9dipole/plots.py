@@ -26,11 +26,13 @@ SERIES = ("#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a
 #: One fixed color per model. The mean baseline is a reference, so it is muted gray.
 MODEL_COLORS: dict[str, str] = {
     "qkrr": SERIES[0], "rbf_krr": SERIES[1], "xgb": SERIES[2], "rf": SERIES[3],
-    "ridge": SERIES[4], "linear": SERIES[5], "mean": MUTED,
+    "ridge": SERIES[4], "linear": SERIES[5], "charge_net": SERIES[6], "charge_linear": SERIES[7],
+    "mean": MUTED,
 }
 MODEL_LABELS: dict[str, str] = {
     "qkrr": "quantum kernel ridge", "rbf_krr": "RBF kernel ridge", "xgb": "XGBoost",
-    "rf": "random forest", "ridge": "ridge", "linear": "linear (OLS)", "mean": "mean",
+    "rf": "random forest", "ridge": "ridge", "linear": "linear (OLS)",
+    "charge_net": "charge network", "charge_linear": "linear charge model", "mean": "mean",
 }
 
 #: Sequential blue ramp (steps 100 → 700) for continuous magnitudes such as μ.
