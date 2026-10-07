@@ -1,7 +1,7 @@
 {
- "git_hash": "e32ac194397fa9a3fa6d9fae811e7e23b715d68c",
+ "git_hash": "cbb552d93b6110f58fa5f32fa49e952820ffb7ee",
  "versions": {
-  "python": "3.12.14",
+  "python": "3.12.3",
   "qiskit": "2.5.2",
   "qiskit-aer": "0.17.2",
   "qiskit-ibm-runtime": "0.50.0",

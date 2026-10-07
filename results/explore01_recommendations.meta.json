@@ -1,7 +1,7 @@
 {
- "git_hash": "41661a8b4870b57949a861cc03c0748b07a5a906",
+ "git_hash": "cbb552d93b6110f58fa5f32fa49e952820ffb7ee",
  "versions": {
-  "python": "3.12.14",
+  "python": "3.12.3",
   "qiskit": "2.5.2",
   "qiskit-aer": "0.17.2",
   "qiskit-ibm-runtime": "0.50.0",
@@ -15,5 +15,5 @@
   "xgboost": "3.4.1",
   "pytest": "9.1.1"
  },
- "label": "exploratory EDA on the training pool P (X2)"
+ "label": "exploratory EDA on the training pool P"
 }

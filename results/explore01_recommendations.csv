@@ -1,15 +1,11 @@
 topic,evidence,finding,action,notebook
-roles,"q, the 11 electronic/thermal properties, freqs",DFT outputs from the same calculation as |μ|,"exploration-only block; never in a headline feature set, Track A included",02
-"A, B, C",rotational constants,"exactly 505.379 GHz·amu·Å² / I(Z, R), so legal; A = 0 marks a linear molecule","replace with inertia moments computed from Z and R (finite, same information)",02
-freqs,255 doubled lists,raw-file artifact: the list is printed twice,keep the first copy; summarize the spectrum (exploration only),02
-duplicates,0 geometric duplicates left in P,removed before splitting (notebook 01); InChI merges tautomers,"nothing to do; identify molecules by geometry, never InChI",—
+roles,"q, the 11 electronic/thermal properties, freqs",DFT outputs from the same calculation as |μ|,exploration-only block; never in a headline feature set,02
+"A, B, C",rotational constants,"exactly 505.379 GHz·amu·Å² / I(Z, R), so legal; A = 0 marks a linear molecule (∞); heavy tail","replace with inertia moments computed from Z and R (finite, same information)",02
+freqs,255 doubled lists,raw-file artifact: the list is printed twice,keep the first copy; summarize the spectrum,02
+duplicates,0 molecules in 0 groups,"same geometry and |μ|; no S_(s,N) holds both twins; InChI merges tautomers","keep one per group in pool-wide analyses; identify by geometry, not InChI",02
 redundancy,8 pairs with |ρ| ≥ 0.99,"e.g. U0/U/H/G, size counts",drop the later of each pair (cleaning.redundancy_spearman = 0.99),02
-bond lengths,"C≡C, C≡N, C=O, N=O peaks separated by empty valleys at full scale",bond order is readable from geometry,"count multiple bonds by length, per molecule and per atom",02
-per-atom charges,"out-of-fold R² for the Mulliken charge: element 0.46, linear 0.97, trees 0.99","an atom's charge is mostly set by its local environment, which Z and R describe",per-atom environment features (atoms.py) and a latent-charge model that predicts charges and outputs |Σ qᵢ cᵢ|,"02, 04"
-QEq,"QEq dipole: Spearman ρ = 0.76, MI 0.52 nats",a no-fit physics estimate from Z and R alone already tracks |μ|,molecule-level qeq block and per-atom QEq charge,02
-zwitterions,128 in P; cover 57% of the ≥ 9 D molecules,a protonated amine plus a carboxylate is visible in the bond graph,"charged-group features (groups block, per-atom flags)",02
-formula imbalance,top 10 formulas hold 42% of P; nine heavy atoms 84%,models learn mostly from a few common formulas,measure new-formula error on the development holdout (dev_unseen),05
-long tails,9 fields with |skew| > 1.0,"A, B, C, mu, r2, n_heavy, n_N, n_F…",compare scalings by CV / development error,03
-target,skewness 1.49; √|μ| -0.05,right tail of zwitterions; spike near 0,"compare raw, √ and log(1+·) targets (predictions inverted to debye)",03
+bond lengths,"C≡C, C≡N, C=O, N=O peaks separated by empty valleys",bond order is readable from geometry,count multiple bonds by length (polar groups),02
+long tails,9 fields with |skew| > 1.0,"A, B, C, mu, r2, n_heavy, n_N, n_F…",compare log / power / quantile scaling against z-scores by CV,03
+target,skewness 1.49; √|μ| -0.05,right tail of zwitterions; spike near 0,"compare raw, √ and log(1+·) targets by CV (predictions inverted to debye)",03
 composition,ω² = 0.25,the formula explains a minority of the variance,geometry-aware features are essential; composition-only is a baseline,04
-outliers,223 molecules ≥ 9 D,valid computed values,"keep; report MAE (primary), RMSE, and RMSE without the tail",05
+outliers,223 molecules ≥ 9 D,zwitterions: valid computed values,"keep; report MAE (primary) and RMSE, and RMSE without the tail",05
