@@ -10,6 +10,9 @@
   negative control that the invariance tests must catch (PLAN §8.3).
 - engineered: physics-motivated geometry, bond and polarity features (exploration; defined
   in `qm9dipole.features`, names in `features.ENGINEERED_NAMES`).
+- groups, qeq, rdf (exploration X2): molecule-level sums of the per-atom environments in
+  `qm9dipole.atoms`: atom types, ring atoms and charged groups; the charge-equilibration (QEq)
+  dipole and charge spread; a radial distribution function per element pair.
 
 Fitted transforms (standardization, PCA for the 8-qubit "compressed" variant) are not here:
 they must be fit on each training set, so they live in the model pipelines (M3+).
@@ -24,6 +27,7 @@ from collections.abc import Callable
 import numpy as np
 import pandas as pd
 
+from qm9dipole import atoms
 from qm9dipole.features import ENGINEERED_NAMES, engineered
 
 ANGSTROM_TO_BOHR = 1.8897261
@@ -77,16 +81,31 @@ DESCRIPTORS: dict[str, Callable[[np.ndarray, np.ndarray], np.ndarray]] = {
     "cm_spectrum": cm_spectrum,
     "raw_coordinates": raw_coordinates,
     "engineered": engineered,
+    "groups": atoms.groups,
+    "qeq": atoms.qeq,
+    "rdf": atoms.rdf,
 }
 
 #: The descriptors models may use. raw_coordinates exists only as the negative control.
-MODEL_DESCRIPTORS: tuple[str, ...] = ("composition", "cm_spectrum", "engineered")
+MODEL_DESCRIPTORS: tuple[str, ...] = ("composition", "cm_spectrum", "engineered", "groups", "qeq", "rdf")
 
 
-def featurize(table: pd.DataFrame, name: str) -> np.ndarray:
-    """Descriptor matrix (n_molecules × d) for the rows of `table`, in row order."""
+def _featurize_chunk(name: str, Zs, Rs) -> np.ndarray:
     fn = DESCRIPTORS[name]
-    return np.stack([fn(z, r) for z, r in zip(table["Z"], table["R"])])
+    return np.stack([fn(z, r) for z, r in zip(Zs, Rs)])
+
+
+def featurize(table: pd.DataFrame, name: str, n_jobs: int = 1, chunk: int = 4000) -> np.ndarray:
+    """Descriptor matrix (n_molecules × d) for the rows of `table`, in row order. `n_jobs` > 1
+    (or -1) splits the rows into chunks computed in parallel processes."""
+    Zs, Rs = table["Z"].to_list(), table["R"].to_list()
+    if n_jobs == 1 or len(Zs) <= chunk:
+        return _featurize_chunk(name, Zs, Rs)
+    from joblib import Parallel, delayed
+
+    parts = Parallel(n_jobs=n_jobs, max_nbytes=None)(
+        delayed(_featurize_chunk)(name, Zs[s:s + chunk], Rs[s:s + chunk]) for s in range(0, len(Zs), chunk))
+    return np.concatenate(parts)
 
 
 def feature_names(name: str) -> list[str]:
@@ -100,10 +119,16 @@ def feature_names(name: str) -> list[str]:
             return [f"{axis}_{k:02d}" for k in range(1, MAX_ATOMS + 1) for axis in "xyz"]
         case "engineered":
             return list(ENGINEERED_NAMES)
+        case "groups":
+            return list(atoms.GROUP_NAMES)
+        case "qeq":
+            return list(atoms.QEQ_NAMES)
+        case "rdf":
+            return list(atoms.RDF_NAMES)
     raise KeyError(f"unknown descriptor {name!r}")
 
 
-def feature_frame(table: pd.DataFrame, name: str) -> pd.DataFrame:
+def feature_frame(table: pd.DataFrame, name: str, n_jobs: int = 1) -> pd.DataFrame:
     """`featurize` as a DataFrame indexed by molecule ID, with named columns."""
-    return pd.DataFrame(featurize(table, name), columns=feature_names(name),
+    return pd.DataFrame(featurize(table, name, n_jobs), columns=feature_names(name),
                         index=pd.Index(table["id"].to_numpy(), name="id"))

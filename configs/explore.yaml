@@ -2,6 +2,11 @@
 # flows through all later steps. Values follow from the EDA (explore_01); reasons are logged
 # in docs/DECISIONS.md. Nothing here is chosen on a test set.
 
+eda:
+  # Random subsample of the training pool for slow estimators (mutual information, per-atom
+  # charge fits); everything else uses all of P.
+  subsample: 20000
+
 cleaning:
   # Geometric duplicates (the same molecule listed twice): formula + Coulomb spectrum rounded
   # to this many decimals. Analyses over the training pool keep one molecule per group.
