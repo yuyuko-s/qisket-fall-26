@@ -253,6 +253,13 @@ Predict the training-set mean.
 - γ ∈ {0.05, 0.1, 0.2, 0.4, 0.8, 1.6}
 - optional: reps ∈ {1, 2}
 
+> **As built (2026-10-07, DECISIONS.md):** `models/quantum_kernel.py`. The γ grid is matched to
+> RBF kernel ridge's dimension-scaled grid through the small-angle limit, γ = (2/√k)·logspace(−1.5,
+> 1, 11), with the same α grid (88 candidates each), and tuned by `KernelRidgeFitter`, which follows
+> the classical harness protocol exactly. Encoders: the team's `zz`, `ry`, `ry_rz`, plus a
+> product-state control; the projected quantum kernel (§7.7) is built too. Results:
+> `notebooks/explore_06_quantum_vs_classical.ipynb`; shots, noise and cost: `explore_07`.
+
 ### 6.5 Targets
 
 - Raw debye; optionally standardize with the training mean and standard deviation, then
@@ -384,7 +391,10 @@ the whole sequence of uploads, not just its first layer. Thus 24 inputs on 8 qub
   truncation threshold zero. Both are exact up to numerical precision, without finite shots
   or noise. MPS is useful specifically for shallow nearest-neighbor circuits, not a promise
   of efficient simulation for arbitrary circuits. All encodings are simulator-only; an IBM
-  hardware adapter and any separately approved jobs remain future work.
+  hardware adapter and any separately approved jobs remain future work. (2026-10-07) A third
+  method, `batched`, evolves every row through the same circuit at once (`models/qsim.py`) and
+  equals the `statevector` path to 1e-12, about 10× faster; the molecular comparison uses it, with
+  `clip_negative=False` inside the project's target transform (DECISIONS.md).
 
 `QuantumRidgeRegressor` supports sklearn cloning/CV and clips negative predictions at zero
 by default (§6.5). Every scaler is training-fitted and refitted in each CV fold. Optional

@@ -17,6 +17,7 @@ transform lives inside the estimator, so it is refit on each training set and fo
 from __future__ import annotations
 
 import json
+import re
 import time
 
 import numpy as np
@@ -29,6 +30,13 @@ from qm9dipole.evaluate import clip_predictions, holdout_split, kfold, tune
 
 def _json(d: dict) -> dict:
     return json.loads(json.dumps(d, default=lambda v: v.item() if isinstance(v, np.generic) else str(v)))
+
+
+def stable_repr(estimator: BaseEstimator) -> str:
+    """repr(estimator) without memory addresses, for cache keys. A FunctionTransformer prints its
+    functions as "<function f at 0x…>", whose address changes in every process, so the raw repr
+    of a √μ-target pipeline gave a different cache key in every run."""
+    return re.sub(r" at 0x[0-9A-Fa-f]+", "", repr(estimator))
 
 
 class MeanFitter:
@@ -61,7 +69,7 @@ class TabularFitter:
         self.frame, self.estimator, self.grid, self.seed = frame, estimator, grid, seed
         self.cv_max_n, self.val_frac, self.max_val, self.n_jobs = cv_max_n, val_frac, max_val, n_jobs
         self.config = _json({"kind": "tabular", "label": label, "features": list(frame.columns),
-                             "estimator": repr(estimator), "grid": grid, "seed": seed, "cv_max_n": cv_max_n,
+                             "estimator": stable_repr(estimator), "grid": grid, "seed": seed, "cv_max_n": cv_max_n,
                              "val_frac": val_frac, "max_val": max_val})
 
     def _X(self, ids) -> np.ndarray:

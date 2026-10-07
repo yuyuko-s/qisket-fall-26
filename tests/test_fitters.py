@@ -150,3 +150,26 @@ def test_dev_curve_rows_and_cache(frame, tmp_path):
     assert len(list(tmp_path.glob("*.pkl"))) == 4
     again, _ = dev_curve(make, train_sets, eval_sets, y, cache_dir=tmp_path, progress=False)
     pd.testing.assert_frame_equal(rows.drop(columns="fit_seconds"), again.drop(columns="fit_seconds"))
+
+
+def test_tabular_cache_key_has_no_memory_addresses(frame):
+    """The √μ target's FunctionTransformer prints "<function … at 0x…>"; the cache key must not,
+    or every new process misses the cache."""
+    import subprocess
+    import sys
+
+    est, grid = classical.build("rbf_krr", 0, target="sqrt", scaling="yeo_johnson", reduction=("pls", 3))
+    assert " at 0x" in repr(est)  # the raw repr would break the key
+    fitter = TabularFitter(frame[0], est, grid, seed=0)
+    assert " at 0x" not in fitter.config["estimator"]
+    from qm9dipole.provenance import config_hash
+
+    here = config_hash(fitter.config)
+    code = ("import pandas as pd, numpy as np\n"
+            "from qm9dipole.models import classical\nfrom qm9dipole.models.fitters import TabularFitter\n"
+            "from qm9dipole.provenance import config_hash\n"
+            "f = pd.DataFrame(np.zeros((3, 12)), columns=[f'f{k}' for k in range(12)])\n"
+            "e, g = classical.build('rbf_krr', 0, target='sqrt', scaling='yeo_johnson', reduction=('pls', 3))\n"
+            "print(config_hash(TabularFitter(f, e, g, seed=0).config))")
+    other = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True).stdout.strip()
+    assert other == here  # the same key in a fresh process
