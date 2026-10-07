@@ -1,0 +1,49 @@
+# Test-set evaluation (scripts/final_eval.py; presented by notebooks/07_test_comparison.ipynb).
+# Iterating after a test run is allowed (CLAUDE.md rule 2): change this file or the code, say
+# what changed in `note`, commit, and run again. Each run is logged in results/test_runs.csv.
+note: "run 1: the models and settings of the development notebooks (explore_04, 06, 07), unchanged"
+
+seeds: [0, 1, 2]
+
+# Quantum models and their classical comparisons, at the quantum-comparable sizes (Track B
+# protocol: Yeo-Johnson scaling, sqrt target, 5-fold CV inside each training set).
+quantum:
+  sizes: [100, 300, 1000]
+  inputs:                       # name: [feature set, reduction or null]
+    pls10: [all_legal, [pls, 10]]
+    all_legal: [all_legal, null]
+    composition: [composition, null]
+  models:                       # model: inputs it runs on
+    mean: [none]
+    ridge: [pls10, all_legal]
+    rbf_krr: [pls10, all_legal, composition]
+    rf: [pls10, all_legal, composition]
+    qkrr: [pls10, composition]          # fidelity kernel, ZZ map, 2 passes (the headline quantum model)
+    qkrr_ry: [pls10]                    # fidelity kernel, RY + CZ
+    qkrr_ryrz: [pls10]                  # fidelity kernel, RY-RZ (k/2 qubits)
+    qkrr_product: [pls10]               # product-state control (no entanglement)
+    pqk: [pls10, composition]           # projected quantum kernel
+    qridge: [pls10]                     # the team's quantum-feature ridge
+
+# The most accurate classical models (Track A protocol: log scaling, standardized target).
+track_a:
+  sizes: [100, 300, 1000, 3000, 10000]
+  full_pool_seeds: [0]          # the full 99,198-molecule pool, for these seeds only (cost; 30,000 skipped)
+  models: [mean, ridge, rbf_krr, xgb, charge_net]
+  rbf_krr_max_n: 10000
+
+# Finite-shot inference on the quantum test subsets (exact binomial sampling, as validated
+# against Aer in notebook 07), at each model's settings chosen in the `quantum` section.
+shots:
+  models: [qkrr, pqk, qridge]
+  sizes: [100, 300, 1000]
+  shots: [100, 1000, 10000]
+  reps: 5
+
+# Noisy simulation (fake-backend noise model on local Aer; never IBM hardware).
+noise:
+  backend: FakeFez
+  n_train: 100
+  seed: 0
+  per_subset: 30                # molecules from each quantum test subset
+  shots: 1000

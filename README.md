@@ -15,7 +15,8 @@ asks:
 - every model sees the same nested training sets (100 ⊂ 300 ⊂ 1,000 ⊂ … ⊂ 99,198 molecules, 3 seeds; the
   quantum-comparable sizes are 100, 300 and 1,000);
 - settings are tuned by cross-validation inside the training set only;
-- the test sets are evaluated exactly once, at the end;
+- the test sets are scored only by `scripts/final_eval.py`; every test run is logged (`results/test_runs.csv`),
+  and the writeup states how many runs there were and what changed between them;
 - every representation is tested for invariance to rotation, translation and atom reordering.
 
 **Around it, we explore freely.** QM9 also records each atom's partial charge and 14 other
@@ -39,7 +40,7 @@ dead ends are logged in `docs/DECISIONS.md`.
 | M4 Quantum kernel ridge regression (exact simulation) | done on development sets | `notebooks/explore_06_quantum_vs_classical.ipynb` |
 | M5 Finite-shot and noisy inference (simulators) | done | `notebooks/explore_07_shots_noise_cost.ipynb` |
 | M6 Representation ablation, quantum cost | done | `explore_04` (composition only), `explore_06`, `explore_07` (cost) |
-| M7 Final evaluation on the test sets, writeup | next | `scripts/final_eval.py` (not written yet) |
+| M7 Evaluation on the test sets, writeup | in progress | `scripts/final_eval.py`, `configs/test_eval.yaml`, `notebooks/07_test_comparison.ipynb` |
 
 Results so far (development sets only; no test set has been evaluated): see `docs/OVERNIGHT_REPORT.md`.
 
@@ -145,8 +146,19 @@ for nb in explore_01_eda explore_02_cleaning_and_features explore_03_standardiza
 done
 ```
 
-The final test-set evaluation (M7) will be a single script, `scripts/final_eval.py`, run once on
-frozen settings. Test sets are never used to choose anything before that.
+The test-set evaluation (M7) is a script, so each test run is one logged unit. It retrains every model of
+`configs/test_eval.yaml` with the development notebooks' code (tuning inside the training sets only), scores
+the test and development sets, and adds finite-shot and noisy-simulator runs on the quantum test subsets
+(simulators only). `notebooks/07_test_comparison.ipynb` presents the latest run.
+
+```bash
+python scripts/final_eval.py --dry-run --smoke   # minutes: development sets only, one seed, N = 100
+python scripts/final_eval.py                     # a test run (~3-4 h); refuses uncommitted code
+jupyter nbconvert --to notebook --execute --inplace notebooks/07_test_comparison.ipynb
+```
+
+The team may change models after a test run and run again (CLAUDE.md rule 2): edit the config or code, say what
+changed in the config's `note`, commit, rerun. Each run's results are kept (`results/test_runNN_*.csv`).
 
 ## Quantum regression models (M4–M6)
 
