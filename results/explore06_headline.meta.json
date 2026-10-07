@@ -1,0 +1,27 @@
+{
+ "git_hash": "454e908bd1c1d14b1a7b44b6ae11b1d9a0e7caf1",
+ "versions": {
+  "python": "3.12.14",
+  "qiskit": "2.5.2",
+  "qiskit-aer": "0.17.2",
+  "qiskit-ibm-runtime": "0.50.0",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "scikit-learn": "1.9.1",
+  "pandas": "3.0.6",
+  "pyarrow": "25.0.1",
+  "matplotlib": "3.11.2",
+  "pyyaml": "6.0.3",
+  "xgboost": "3.4.1",
+  "pytest": "9.1.1"
+ },
+ "head": "qkrr",
+ "best_track_a": {
+  "100": "xgb",
+  "300": "rbf_krr",
+  "1000": "charge_net"
+ },
+ "best_track_a_full": "charge_net",
+ "smoke": false,
+ "label": "exploratory; Z, R only; headline quantum model vs matched, best Track B and best Track A (dev sets)"
+}

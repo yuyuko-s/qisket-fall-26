@@ -1,0 +1,26 @@
+{
+ "git_hash": "09a6a30b69d3de123d462d3c6bba9a8a16c07cd4",
+ "versions": {
+  "python": "3.12.14",
+  "qiskit": "2.5.2",
+  "qiskit-aer": "0.17.2",
+  "qiskit-ibm-runtime": "0.50.0",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "scikit-learn": "1.9.1",
+  "pandas": "3.0.6",
+  "pyarrow": "25.0.1",
+  "matplotlib": "3.11.2",
+  "pyyaml": "6.0.3",
+  "xgboost": "3.4.1",
+  "pytest": "9.1.1"
+ },
+ "shots": [
+  100,
+  1000,
+  10000
+ ],
+ "reps": 5,
+ "smoke": false,
+ "label": "exploratory; finite-shot inference (exact binomial sampling) at notebook 06's chosen settings; dev scores"
+}
