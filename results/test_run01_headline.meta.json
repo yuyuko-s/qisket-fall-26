@@ -1,0 +1,43 @@
+{
+ "git_hash": "1355057afff904468175ffd33450ab9bf1b8615a",
+ "versions": {
+  "python": "3.12.14",
+  "qiskit": "2.5.2",
+  "qiskit-aer": "0.17.2",
+  "qiskit-ibm-runtime": "0.50.0",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "scikit-learn": "1.9.1",
+  "pandas": "3.0.6",
+  "pyarrow": "25.0.1",
+  "matplotlib": "3.11.2",
+  "pyyaml": "6.0.3",
+  "xgboost": "3.4.1",
+  "pytest": "9.1.1"
+ },
+ "run": 1,
+ "head": "qkrr",
+ "best_track_b": {
+  "100": [
+   "rbf_krr",
+   "all_legal"
+  ],
+  "300": [
+   "rbf_krr",
+   "all_legal"
+  ],
+  "1000": [
+   "rbf_krr",
+   "all_legal"
+  ]
+ },
+ "best_track_a": {
+  "100": "xgb",
+  "300": "rbf_krr",
+  "1000": "charge_net",
+  "3000": "charge_net",
+  "10000": "charge_net",
+  "99198": "charge_net"
+ },
+ "label": "test-set evaluation; Z, R only; mean over seeds"
+}

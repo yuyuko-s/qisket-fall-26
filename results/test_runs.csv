@@ -1,0 +1,2 @@
+run,started,finished,commit,config_hash,sections,smoke,note
+1,2026-10-07 15:35,2026-10-07 19:45,cc6fab3,d91d58827294,"quantum,track_a,shots,noise",False,"run 1: the models and settings of the development notebooks (explore_04, 06, 07), unchanged"

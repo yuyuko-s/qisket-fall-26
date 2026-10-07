@@ -1,0 +1,2 @@
+part,basis,circuits,qubits,depth,two_qubit_gates,duration_us,shots,qpu_seconds
+qridge,Z,160,10,109,36,4.9559999999999995,1000,41.11296

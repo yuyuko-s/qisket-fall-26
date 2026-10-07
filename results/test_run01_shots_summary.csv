@@ -1,0 +1,43 @@
+eval_set,model,mode,n_train,100 shots,"1,000 shots","10,000 shots",exact
+test_familiar_q,projected quantum kernel,exact,100,,,,0.7867954730374439
+test_familiar_q,projected quantum kernel,exact,300,,,,0.7136162734328627
+test_familiar_q,projected quantum kernel,exact,1000,,,,0.6129530412571588
+test_familiar_q,projected quantum kernel,features from shots,100,0.9458306741593518,0.8143518721383181,0.7901150408347992,
+test_familiar_q,projected quantum kernel,features from shots,300,0.8812511411974424,0.7621268790558412,0.7166303752794936,
+test_familiar_q,projected quantum kernel,features from shots,1000,0.8271955177482084,0.6578463148312452,0.627728713245402,
+test_familiar_q,quantum kernel ridge (ZZ map),exact,100,,,,0.7953681235563487
+test_familiar_q,quantum kernel ridge (ZZ map),exact,300,,,,0.7237407770755658
+test_familiar_q,quantum kernel ridge (ZZ map),exact,1000,,,,0.6234856544083774
+test_familiar_q,quantum kernel ridge (ZZ map),test kernel from shots,100,1.078244766505475,0.837661786278159,0.7944210770123659,
+test_familiar_q,quantum kernel ridge (ZZ map),test kernel from shots,300,3.2041701114378096,1.1839970234826016,0.790229196379604,
+test_familiar_q,quantum kernel ridge (ZZ map),test kernel from shots,1000,86.65989100263057,13.550980307323806,2.611952827487735,
+test_familiar_q,quantum kernel ridge (ZZ map),training and test kernels from shots,100,1.0871715395167114,0.8479334209189342,0.7954401888022886,
+test_familiar_q,quantum kernel ridge (ZZ map),training and test kernels from shots,300,2.8243404274030257,1.069417909167018,0.7818903747491318,
+test_familiar_q,quantum kernel ridge (ZZ map),training and test kernels from shots,1000,64.41461454211444,10.466137042765125,2.1554318975583104,
+test_familiar_q,quantum-feature ridge (team model),exact,100,,,,0.7891222871646225
+test_familiar_q,quantum-feature ridge (team model),exact,300,,,,0.7215929274154821
+test_familiar_q,quantum-feature ridge (team model),exact,1000,,,,0.6246768956219257
+test_familiar_q,quantum-feature ridge (team model),features from shots,100,0.8694312694958183,0.8092064464284937,0.7891564512796677,
+test_familiar_q,quantum-feature ridge (team model),features from shots,300,0.8361181815542591,0.7416958373189444,0.72618037096142,
+test_familiar_q,quantum-feature ridge (team model),features from shots,1000,0.7792954547930172,0.6400670258665198,0.6237945389802604,
+test_unseen_q,projected quantum kernel,exact,100,,,,0.9631111561215023
+test_unseen_q,projected quantum kernel,exact,300,,,,0.8213528002441558
+test_unseen_q,projected quantum kernel,exact,1000,,,,0.741763591175467
+test_unseen_q,projected quantum kernel,features from shots,100,1.0593853271864486,0.9801217937028934,0.9653176488447927,
+test_unseen_q,projected quantum kernel,features from shots,300,0.9423275954689949,0.8571177653052996,0.8216306105084609,
+test_unseen_q,projected quantum kernel,features from shots,1000,0.9252519350849876,0.7610634332221683,0.7504561377653541,
+test_unseen_q,quantum kernel ridge (ZZ map),exact,100,,,,0.9550745937820634
+test_unseen_q,quantum kernel ridge (ZZ map),exact,300,,,,0.8207795583739581
+test_unseen_q,quantum kernel ridge (ZZ map),exact,1000,,,,0.7044727198912003
+test_unseen_q,quantum kernel ridge (ZZ map),test kernel from shots,100,1.1347591042478509,0.9843575475631577,0.957395569867743,
+test_unseen_q,quantum kernel ridge (ZZ map),test kernel from shots,300,3.4939156449435185,1.3310569838648538,0.8943510271924099,
+test_unseen_q,quantum kernel ridge (ZZ map),test kernel from shots,1000,108.89467617420978,14.238615983340619,2.9670605408156647,
+test_unseen_q,quantum kernel ridge (ZZ map),training and test kernels from shots,100,1.1803670623356655,0.9961429297932488,0.9590544767209112,
+test_unseen_q,quantum kernel ridge (ZZ map),training and test kernels from shots,300,3.1264564858438226,1.241837428706114,0.8789162880101131,
+test_unseen_q,quantum kernel ridge (ZZ map),training and test kernels from shots,1000,77.49870180098672,10.677656101155751,2.5921378379115305,
+test_unseen_q,quantum-feature ridge (team model),exact,100,,,,1.0125823395384963
+test_unseen_q,quantum-feature ridge (team model),exact,300,,,,0.8814237341832287
+test_unseen_q,quantum-feature ridge (team model),exact,1000,,,,0.7493809487120671
+test_unseen_q,quantum-feature ridge (team model),features from shots,100,1.0351780268905766,1.0148924030891966,1.013036749658937,
+test_unseen_q,quantum-feature ridge (team model),features from shots,300,0.9156979135373459,0.8791761172258467,0.8829662568304624,
+test_unseen_q,quantum-feature ridge (team model),features from shots,1000,0.8688601106270817,0.7702043617694645,0.7491609365382546,

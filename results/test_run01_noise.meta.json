@@ -1,0 +1,41 @@
+{
+ "git_hash": "cc6fab3b1619ab0accaca043dbce840af24ba5d4",
+ "versions": {
+  "python": "3.12.14",
+  "qiskit": "2.5.2",
+  "qiskit-aer": "0.17.2",
+  "qiskit-ibm-runtime": "0.50.0",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "scikit-learn": "1.9.1",
+  "pandas": "3.0.6",
+  "pyarrow": "25.0.1",
+  "matplotlib": "3.11.2",
+  "pyyaml": "6.0.3",
+  "xgboost": "3.4.1",
+  "pytest": "9.1.1"
+ },
+ "run": 1,
+ "note": "run 1: the models and settings of the development notebooks (explore_04, 06, 07), unchanged",
+ "config_hash": "d91d58827294",
+ "dry_run": false,
+ "smoke": false,
+ "eval_sets": {
+  "test_familiar": 5484,
+  "test_unseen": 16818,
+  "dev": 5000,
+  "dev_unseen": 4183,
+  "test_familiar_q": 80,
+  "test_unseen_q": 370
+ },
+ "backend": "FakeFez",
+ "shots": 1000,
+ "n_train": 100,
+ "seed": 0,
+ "test_molecules": {
+  "test_familiar_q": 30,
+  "test_unseen_q": 30
+ },
+ "survival_mean": 0.7297666666666668,
+ "label": "test-set evaluation; Z, R only; trained and tuned on the saved training sets only"
+}
