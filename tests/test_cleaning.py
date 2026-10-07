@@ -46,6 +46,29 @@ def test_zero_variance_and_redundancy():
     assert red["dropped"].tolist() == ["a"]  # priority decides which survives
 
 
+def test_redundancy_is_not_fooled_by_shared_zeros():
+    # Two sparse columns: zero on the same 95% of rows, unrelated where they are non-zero.
+    # Ties at zero make ρ over all rows ≥ 0.99; on the active rows they are independent.
+    rng = np.random.default_rng(1)
+    active = rng.random(4000) < 0.05
+    u = np.where(active, rng.uniform(1, 2, 4000), 0.0)
+    v = np.where(active, rng.uniform(1, 2, 4000), 0.0)
+    frame = pd.DataFrame({"u": u, "v": v, "u_twice": 2 * u})
+    assert frame.corr(method="spearman").loc["u", "v"] >= 0.99
+    red = redundant_columns(frame, 0.99)
+    assert red["dropped"].tolist() == ["u_twice"]  # the true duplicate still goes; v stays
+    assert red["dropped"].tolist() != redundant_columns(frame, 0.99, active_only=False)["dropped"].tolist()
+
+
+def test_identical_indicators_are_redundant_but_an_indicator_of_a_count_is_not():
+    rng = np.random.default_rng(2)
+    flag = (rng.random(3000) < 0.05).astype(float)
+    count = flag * rng.integers(1, 4, 3000)  # non-zero exactly where flag is, but varies there
+    frame = pd.DataFrame({"flag": flag, "same_flag": flag.copy(), "count": count})
+    red = redundant_columns(frame, 0.99)
+    assert red["dropped"].tolist() == ["same_flag"]
+
+
 @pytest.mark.skipif(not QM9_PARQUET.exists(), reason="data/processed/qm9.parquet not built")
 def test_qm9_rotational_constants_are_functions_of_the_geometry():
     # A, B, C (GHz) from QM9 equal 505.379/I for the moments computed from Z and R alone.

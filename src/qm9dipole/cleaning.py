@@ -87,21 +87,44 @@ def zero_variance(frame: pd.DataFrame) -> list[str]:
     return [c for c in frame.columns if frame[c].nunique(dropna=False) <= 1]
 
 
-def redundant_columns(frame: pd.DataFrame, threshold: float,
-                      priority: list[str] | None = None) -> pd.DataFrame:
+def redundant_columns(frame: pd.DataFrame, threshold: float, priority: list[str] | None = None,
+                      active_only: bool = True, min_active: int = 30) -> pd.DataFrame:
     """Greedy redundancy filter: walk columns in priority order and keep a column unless its
     |Spearman ρ| with an already kept column is ≥ `threshold`.
 
-    Returns one row per dropped column: (dropped, kept, rho). Constant columns should be
-    removed first (their correlation is undefined).
+    With `active_only` (exploration X2), a pair must also reach the threshold on the rows where
+    either column is non-zero (when there are at least `min_active` such rows). Zero-inflated
+    columns, such as counts of a rare neighbour, share long runs of tied zeros, which alone
+    push ρ over all rows towards 1 even when their non-zero values differ; the second test
+    keeps only pairs that are monotone where they actually vary.
+
+    Returns one row per dropped column: (dropped, kept, rho, rho_active). Constant columns
+    should be removed first (their correlation is undefined).
     """
     order = list(priority or frame.columns)
     rho = frame[order].corr(method="spearman").abs()
+    nonzero = frame[order].to_numpy() != 0
+    col_index = {c: i for i, c in enumerate(order)}
     kept, rows = [], []
     for col in order:
-        match = next((k for k in kept if rho.loc[col, k] >= threshold), None)
+        match, rho_active = None, np.nan
+        for k in kept:
+            if rho.loc[col, k] < threshold:
+                continue
+            if active_only:
+                active = nonzero[:, col_index[col]] | nonzero[:, col_index[k]]
+                if min_active <= active.sum() < len(active):
+                    pair = frame.loc[active, [col, k]]
+                    if (pair.nunique() == 1).all():
+                        rho_active = 1.0  # both constant where active: they mark the same rows
+                    else:
+                        rho_active = abs(pair.corr(method="spearman").iloc[0, 1])
+                    if not rho_active >= threshold:  # NaN: one varies where the other is constant
+                        continue
+            match = k
+            break
         if match is None:
             kept.append(col)
         else:
-            rows.append({"dropped": col, "kept": match, "rho": float(rho.loc[col, match])})
-    return pd.DataFrame(rows, columns=["dropped", "kept", "rho"])
+            rows.append({"dropped": col, "kept": match, "rho": float(rho.loc[col, match]), "rho_active": rho_active})
+    return pd.DataFrame(rows, columns=["dropped", "kept", "rho", "rho_active"])

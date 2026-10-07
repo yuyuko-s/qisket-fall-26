@@ -19,18 +19,33 @@ Models:
 Targets: μ in debye, transformed by `target` (default: standardized, which gives kernel
 ridge, a model without an intercept, the training mean as its baseline) and inverted after
 prediction, so predictions are in debye.
+
+Reductions (exploration X2, Track B): `reduction=(method, k)` inserts, after scaling, one of
+- "pca":   the first k principal components (unsupervised);
+- "pls":   k partial-least-squares components, directions chosen for covariance with the
+           (transformed) target, so supervised;
+- "kbest": the k features with the highest mutual information with the target (supervised);
+then re-standardizes the k outputs, so every input of a matched classical model sees the
+same numbers a k-qubit angle encoding would. All are fit inside the pipeline, on each
+training set and fold only.
 """
 
 from __future__ import annotations
 
 import numpy as np
 from sklearn.compose import TransformedTargetRegressor
+from functools import partial
+
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.cross_decomposition import PLSRegression
 from sklearn.decomposition import PCA
 from sklearn.dummy import DummyRegressor
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.feature_selection import SelectKBest, mutual_info_regression
 from sklearn.kernel_ridge import KernelRidge
 from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 from xgboost import XGBRegressor
 
 from qm9dipole.preprocess import scaling_steps, target_transformer
@@ -53,6 +68,49 @@ GRIDS: dict[str, dict[str, list]] = {
 }
 
 
+#: Reduction methods for the compressed (quantum-comparable) inputs.
+REDUCTIONS: tuple[str, ...] = ("pca", "pls", "kbest")
+
+
+class PLSScores(TransformerMixin, BaseEstimator):
+    """Partial-least-squares x-scores as a pipeline step (sklearn's PLSRegression returns a
+    tuple from fit_transform, which a Pipeline cannot pass on)."""
+
+    def __init__(self, n_components: int = 8):
+        self.n_components = n_components
+
+    def fit(self, X, y):
+        k = min(self.n_components, X.shape[1], X.shape[0] - 1)
+        self.pls_ = PLSRegression(n_components=k, scale=False).fit(X, y)
+        self.n_features_in_ = X.shape[1]
+        return self
+
+    def transform(self, X):
+        return self.pls_.transform(X)
+
+
+def reduction_steps(method: str, k: int) -> list[tuple[str, object]]:
+    """Pipeline steps reducing scaled features to k inputs (see REDUCTIONS), re-standardized."""
+    match method:
+        case "pca":
+            step = PCA(n_components=k)
+        case "pls":
+            step = PLSScores(n_components=k)
+        case "kbest":
+            step = SelectKBest(partial(mutual_info_regression, random_state=0), k=k)
+        case _:
+            raise KeyError(f"unknown reduction {method!r}; choose from {REDUCTIONS}")
+    return [("reduce", step), ("rescale", StandardScaler())]
+
+
+def rbf_grid(n_features: int) -> dict[str, list]:
+    """Kernel-ridge grid whose RBF bandwidths scale with the input dimension: γ = c / d for
+    c in logspace(−2, 2, 9). Squared distances between standardized points grow like 2d, so a
+    fixed γ grid suits only one dimension (X1's grid assumed tens of features)."""
+    return {"model__alpha": [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0],
+            "model__gamma": (np.logspace(-2, 2, 9) / max(n_features, 1)).tolist()}
+
+
 def _regressor(name: str, seed: int):
     # Tree models run single-threaded: the CV harness parallelizes over (candidate, fold).
     match name:
@@ -73,19 +131,28 @@ def _regressor(name: str, seed: int):
 
 
 def build(name: str, seed: int, compressed: bool = False, n_components: int = N_COMPONENTS,
-          scaling: str = "standard", target: str = "standard") -> tuple[TransformedTargetRegressor, dict]:
+          scaling: str = "standard", target: str = "standard", reduction: tuple[str, int] | None = None,
+          n_features: int | None = None) -> tuple[TransformedTargetRegressor, dict]:
     """(estimator, grid) for model `name`; `seed` fixes the tree models' randomness.
 
     The estimator's `regressor` is the feature pipeline (steps "scale"/"log"/..., optional
-    "pca", then "model"); after fitting, the fitted copy is `regressor_`.
+    "pca" (X1's compressed variant) or "reduce" + "rescale" (`reduction`), then "model"); after
+    fitting, the fitted copy is `regressor_`. With `n_features` (or a reduction), kernel ridge
+    uses the dimension-scaled bandwidth grid `rbf_grid`.
     """
     steps = [*scaling_steps(scaling)]
     if compressed:
         steps.append(("pca", PCA(n_components=n_components)))
+    if reduction is not None:
+        steps += reduction_steps(*reduction)
     steps.append(("model", _regressor(name, seed)))
     estimator = TransformedTargetRegressor(regressor=Pipeline(steps),
                                            transformer=target_transformer(target), check_inverse=False)
-    return estimator, {f"regressor__{k}": v for k, v in GRIDS[name].items()}
+    grid = GRIDS[name]
+    d = reduction[1] if reduction is not None else n_features
+    if name == "rbf_krr" and d is not None:
+        grid = rbf_grid(d)
+    return estimator, {f"regressor__{k}": v for k, v in grid.items()}
 
 
 def specs(seed: int, compressed: bool = False, models: tuple[str, ...] = MODELS,
