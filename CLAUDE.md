@@ -150,10 +150,14 @@ src/qm9dipole/
   explore.py       exploration-chain plumbing: artifacts, loaders, feature sets
   invariance.py    rotation / translation / relabeling checks and the invariance table
   models/classical.py  mean, linear, ridge, RBF-KRR, RF, XGBoost pipelines and CV grids
-  models/quantum.py  fixed quantum-feature + linear ridge prototype (simulator only)
-  models/quantum_kernel.py
-  noise.py         finite-shot and noisy inference
-  cost.py          quantum resource accounting
+  models/quantum.py  the team's encoders (build_encoding_circuit) + quantum-feature ridge (simulator only)
+  models/qsim.py   batched exact statevectors of a Qiskit circuit (checked against Statevector)
+  models/quantum_kernel.py  fidelity and projected quantum kernels, KernelRidgeFitter (the harness
+                   protocol for any kernel), kernel diagnostics
+  models/fitters.py  harness fitters (mean, tabular, XGBoost, latent-charge network)
+  models/charge.py  latent-charge network (numpy)
+  noise.py         finite shots (exact binomial), Aer ideal and fake-backend noisy sampling, mitigation
+  cost.py          quantum resource accounting (gate counts, transpiled costs, circuits, QPU time)
   evaluate.py      metrics, CV (tune), learning-curve harness, permutation importance
   analysis.py      exploratory statistics (variance by formula, PCA-vs-k curves, error breakdowns)
   plots.py         shared figure style; one fixed color per model
@@ -161,7 +165,8 @@ scripts/     final_eval.py only
 tests/       test_environment.py, test_data_download.py, test_parser.py, test_splits.py,
              test_invariance.py, test_features.py, test_evaluate.py, test_analysis.py,
              test_eda.py, test_cleaning.py, test_preprocess.py, test_complexity.py,
-             test_quantum_kernel.py
+             test_quantum.py, test_quantum_encoding.py (teammate), test_qsim.py,
+             test_quantum_kernel.py, test_noise_cost.py, ...
 results/     CSV outputs, each with a .meta.json provenance sidecar (provenance.save_result)
 figures/
 ```

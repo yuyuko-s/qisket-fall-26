@@ -3,7 +3,9 @@
 The encoder prepares a state for each molecule; per-qubit Z expectations are
 its dimensionless features. Ridge learns their linear mapping to debye labels.
 This is a linear projected quantum-feature model, not a fidelity kernel or VQR.
-Execution is local simulation only (statevector or MPS): no IBM clients or jobs.
+Execution is local simulation only (statevector, MPS or batched statevector): no IBM
+clients or jobs. "batched" evolves all rows through the same Qiskit circuit at once
+(models/qsim.py) and gives the statevector path's numbers ~10x faster.
 Input columns and qubits are independent; encoders re-upload inputs in batches
 according to a capacity-based mapping rather than qubit-count-specific cases.
 Inputs must already be fixed-width descriptors; molecular invariance and any
@@ -29,6 +31,8 @@ from sklearn.linear_model import Ridge
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_array, check_is_fitted, check_X_y
+
+from qm9dipole.models.qsim import BatchedCircuit, pauli_expectations
 
 
 def _integer_parameter(value: int, name: str, minimum: int) -> int:
@@ -60,7 +64,7 @@ MIN_REPS: dict[str, int] = {"zz": 2, "ry": 1, "ry_rz": 1}
 MIN_QUBITS: dict[str, int] = {"zz": 2, "ry": 1, "ry_rz": 1}
 ROTATION_GATES = {"ry": RYGate, "rz": RZGate}
 MIXING_ANGLE = np.pi / 4
-SIMULATION_METHODS = ("statevector", "matrix_product_state")
+SIMULATION_METHODS = ("statevector", "matrix_product_state", "batched")
 
 
 @dataclass(frozen=True)
@@ -154,9 +158,11 @@ def build_encoding_circuit(
     return circuit
 
 
-def _local_estimator(method: str) -> StatevectorEstimator | AerEstimatorV2:
+def _local_estimator(method: str) -> StatevectorEstimator | AerEstimatorV2 | None:
     if not isinstance(method, str) or method not in SIMULATION_METHODS:
         raise ValueError(f"simulation_method must be one of {SIMULATION_METHODS}.")
+    if method == "batched":
+        return None  # transform() uses qsim.BatchedCircuit instead of a primitive
     if method == "statevector":
         return StatevectorEstimator(default_precision=0.0)
     return AerEstimatorV2(
@@ -232,6 +238,7 @@ class QuantumFeatureTransformer(TransformerMixin, BaseEstimator):
         self.circuit_ = circuit
         self.observables_ = observables
         self.estimator_ = estimator
+        self.batched_ = BatchedCircuit(circuit) if self.simulation_method == "batched" else None
         self.n_features_in_ = n_features
         self.n_qubits_ = n_qubits
         self.n_features_out_ = n_qubits
@@ -257,6 +264,10 @@ class QuantumFeatureTransformer(TransformerMixin, BaseEstimator):
             angles = self.gamma_ * matrix
         if not np.isfinite(angles).all():
             raise ValueError("gamma * X must contain finite circuit angles.")
+        if getattr(self, "batched_", None) is not None:
+            # Same exact expectations, from one batched statevector evolution (qsim.py).
+            states = self.batched_.statevectors(angles)
+            return np.ascontiguousarray(pauli_expectations(states)["Z"])
 
         features = np.empty((len(matrix), self.n_qubits_), dtype=np.float64)
         for start in range(0, len(matrix), self.batch_size_):
@@ -304,6 +315,11 @@ class QuantumRidgeRegressor(RegressorMixin, BaseEstimator):
     GridSearchCV; each fit builds a fresh scaler and readout. Put any learned
     descriptor preprocessing/PCA outside this estimator in the same sklearn
     Pipeline so it is also fitted inside each training/CV fold.
+
+    Inside a target transform (the project's TransformedTargetRegressor, which
+    standardizes μ or √μ), pass ``clip_negative=False``: clipping would act on
+    the transformed target, where below-mean values are negative, and pin them
+    to the mean. The project's harness clips in debye after inverting.
     """
 
     def __init__(

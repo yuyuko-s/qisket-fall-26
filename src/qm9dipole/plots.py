@@ -35,6 +35,33 @@ MODEL_LABELS: dict[str, str] = {
     "charge_net": "charge network", "charge_linear": "linear charge model", "mean": "mean",
 }
 
+#: The quantum models (M4) share the quantum slot's hue: the palette has no ninth hue, so the
+#: family is told apart by line style and marker (composite encoding), always with a legend.
+QUANTUM_STYLES: dict[str, dict] = {
+    "qkrr": {"linestyle": "-", "marker": "o"},
+    "qkrr_ry": {"linestyle": "-", "marker": "D"},
+    "qkrr_ryrz": {"linestyle": "-", "marker": "v"},
+    "qkrr_product": {"linestyle": ":", "marker": "x"},
+    "pqk": {"linestyle": "--", "marker": "s"},
+    "qridge": {"linestyle": "-.", "marker": "^"},
+}
+for _m in QUANTUM_STYLES:
+    MODEL_COLORS.setdefault(_m, SERIES[0])
+MODEL_LABELS.update({
+    "qkrr": "quantum kernel ridge (ZZ map)",
+    "qkrr_ry": "quantum kernel ridge (RY + CZ)",
+    "qkrr_ryrz": "quantum kernel ridge (RY-RZ, k/2 qubits)",
+    "qkrr_product": "product-state kernel (no entanglement)",
+    "pqk": "projected quantum kernel",
+    "qridge": "quantum-feature ridge (team model)",
+})
+
+
+def model_style(model: str) -> dict:
+    """Matplotlib keyword arguments (color, and line style and marker for quantum models)."""
+    return {"color": MODEL_COLORS.get(model, MUTED), **QUANTUM_STYLES.get(model, {"linestyle": "-", "marker": "o"})}
+
+
 #: Sequential blue ramp (steps 100 → 700) for continuous magnitudes such as μ.
 SEQUENTIAL = LinearSegmentedColormap.from_list(
     "qm9_blue", ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"])
