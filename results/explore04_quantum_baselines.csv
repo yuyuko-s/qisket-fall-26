@@ -1,0 +1,4 @@
+N,best Track A model,best Track A dev MAE,"matched (pls10, RBF KRR) dev MAE",matched CV MAE,best composition-only dev MAE,mean baseline dev MAE
+100,XGBoost,0.672 ± 0.029,0.738 ± 0.069,0.755 ± 0.115,1.025,1.198
+300,RBF kernel ridge,0.561 ± 0.019,0.582 ± 0.013,0.590 ± 0.087,1.016,1.185
+1000,charge network,0.281 ± 0.007,0.497 ± 0.006,0.498 ± 0.022,0.986,1.181

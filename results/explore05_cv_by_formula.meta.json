@@ -1,5 +1,5 @@
 {
- "git_hash": "ca133e416cd7ba6d2101d26084cfdbfe63ea93e5-dirty",
+ "git_hash": "ee8147ad21938fbefaa19c80cf324bd12d4ba5e7",
  "versions": {
   "python": "3.12.14",
   "qiskit": "2.5.2",
@@ -16,13 +16,5 @@
   "pytest": "9.1.1"
  },
  "n_train": 1000,
- "seeds": [
-  0,
-  1,
-  2
- ],
- "scaling": "yeo_johnson",
- "target": "sqrt",
- "folds": "GroupKFold(5, shuffle=True, random_state=seed) by formula",
- "label": "exploratory; legal inputs; formula-grouped CV inside S_(s,1000) only; no test set read"
+ "label": "exploratory; Z, R only; formula-grouped CV inside S_(s,1000)"
 }

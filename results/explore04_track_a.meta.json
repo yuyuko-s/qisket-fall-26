@@ -1,0 +1,50 @@
+{
+ "git_hash": "ee8147ad21938fbefaa19c80cf324bd12d4ba5e7",
+ "versions": {
+  "python": "3.12.14",
+  "qiskit": "2.5.2",
+  "qiskit-aer": "0.17.2",
+  "qiskit-ibm-runtime": "0.50.0",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "scikit-learn": "1.9.1",
+  "pandas": "3.0.6",
+  "pyarrow": "25.0.1",
+  "matplotlib": "3.11.2",
+  "pyyaml": "6.0.3",
+  "xgboost": "3.4.1",
+  "pytest": "9.1.1"
+ },
+ "scaling": "log_standard",
+ "target": "standard",
+ "charge_net": {
+  "loss": "mae",
+  "lr": 0.002,
+  "weight_decay": 0.0001,
+  "batch_size": 64,
+  "max_epochs": 300,
+  "patience": 30,
+  "lr_patience": 10,
+  "max_steps": 120000,
+  "hidden": [
+   128,
+   64
+  ],
+  "message_passing": 3,
+  "atomic_dipoles": true
+ },
+ "charge_linear": {
+  "loss": "mae",
+  "lr": 0.002,
+  "weight_decay": 0.0001,
+  "batch_size": 64,
+  "max_epochs": 300,
+  "patience": 30,
+  "lr_patience": 10,
+  "max_steps": 120000,
+  "hidden": [],
+  "message_passing": 0,
+  "atomic_dipoles": true
+ },
+ "label": "exploratory; Z, R only; Track A; tuned inside S_(s,N); scored on dev and dev_unseen"
+}

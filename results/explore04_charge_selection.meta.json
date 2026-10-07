@@ -15,6 +15,8 @@
   "xgboost": "3.4.1",
   "pytest": "9.1.1"
  },
- "n_rep": 20,
- "label": "exploratory; df of models refit on S_(s,N)"
+ "selection_n": 10000,
+ "chosen": "mp3",
+ "chosen_linear": "linear+dipoles",
+ "label": "exploratory; Z, R only; chosen by the inner validation split of S_(0,10000); dev scores for information"
 }

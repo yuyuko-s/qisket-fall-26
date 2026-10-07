@@ -1,5 +1,5 @@
 {
- "git_hash": "ca133e416cd7ba6d2101d26084cfdbfe63ea93e5-dirty",
+ "git_hash": "ee8147ad21938fbefaa19c80cf324bd12d4ba5e7",
  "versions": {
   "python": "3.12.14",
   "qiskit": "2.5.2",
@@ -17,7 +17,8 @@
  },
  "model": "xgb",
  "seed": 0,
- "n_train": 1000,
+ "n_train": 10000,
  "n_repeats": 3,
- "label": "exploratory; legal inputs; 5-fold CV inside S_(0,1000)"
+ "base_dev_mae_D": 0.3345668084452057,
+ "label": "exploratory; Z, R only; permutation importance on the development set"
 }
