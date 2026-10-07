@@ -150,6 +150,7 @@ src/qm9dipole/
   explore.py       exploration-chain plumbing: artifacts, loaders, feature sets
   invariance.py    rotation / translation / relabeling checks and the invariance table
   models/classical.py  mean, linear, ridge, RBF-KRR, RF, XGBoost pipelines and CV grids
+  models/quantum.py  fixed quantum-feature + linear ridge prototype (simulator only)
   models/quantum_kernel.py
   noise.py         finite-shot and noisy inference
   cost.py          quantum resource accounting
@@ -181,6 +182,7 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/explore_02_cleanin
 jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1 notebooks/explore_03_standardization_and_dimension.ipynb
 jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1 notebooks/explore_04_classical_models.ipynb
 jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1 notebooks/explore_05_generalization_and_diagnostics.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/02_quantum_regression.ipynb # synthetic quantum prototype, not M4 completion
 python scripts/final_eval.py --config configs/frozen.yaml  # M7: run once, at the end (not yet written)
 ```
 

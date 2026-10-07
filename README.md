@@ -138,6 +138,39 @@ done
 The final test-set evaluation (M7) will be a single script, `scripts/final_eval.py`, run once on
 frozen settings. Test sets are never used to choose anything before that.
 
+## Quantum-feature regression prototype
+
+`src/qm9dipole/models/quantum.py` implements a fixed Qiskit encoder with a classical
+linear ridge readout. `QuantumRidgeRegressor` fits input standardization on training data,
+encodes each input column on one qubit with `zz_feature_map`, measures per-qubit Z
+expectations using the exact local `StatevectorEstimator`, and fits `Ridge` on debye labels.
+Use 4–8 fixed-width input features; the circuit does not itself make raw XYZ inputs invariant.
+
+```python
+from qm9dipole.models.quantum import QuantumRidgeRegressor
+
+model = QuantumRidgeRegressor(alpha=1.0, gamma=1.0, reps=2)
+model.fit(X_train, y_train)           # y_train: dipole magnitude in debye
+predictions = model.predict(X_val)   # debye; negative predictions clipped at 0
+features = model.quantum_features(X_val)
+```
+
+Defaults are illustrative, not selected hyperparameters. Tune `alpha`, `gamma` and optionally
+`reps` with training-only CV. If PCA is learned from descriptors, put it **before this model in
+the same sklearn `Pipeline`**, rather than supplying globally fitted PCA scores to CV.
+The measured features are dimensionless; the fitted ridge readout maps them to physical units.
+This is a linear projected quantum-feature model, not the pairwise fidelity kernel.
+
+Run the synthetic smoke notebook (no QM9 evaluation or hardware access):
+
+```bash
+jupyter nbconvert --to notebook --execute --inplace notebooks/02_quantum_regression.ipynb
+pytest -q tests/test_quantum.py
+```
+
+This prototype does not complete the molecular benchmark or M4. At 4–8 qubits, exact CPU
+simulation is inexpensive; using quantum features is not a claim of quantum speedup.
+
 ## Data
 
 QM9: Ramakrishnan, Dral, Rupp, von Lilienfeld, *Scientific Data* 1, 140022 (2014), from GDB-17
@@ -152,6 +185,7 @@ notebooks/      one notebook per milestone (the entry points); explore_* for exp
 src/qm9dipole/  all logic: data.py (download, parsing, exclusions), splits.py, descriptors.py,
                 features.py, invariance.py, provenance.py; eda.py, cleaning.py, preprocess.py,
                 complexity.py, evaluate.py, analysis.py, explore.py, plots.py, models/
+                (models/quantum.py: fixed quantum features + linear ridge prototype)
 tests/          pytest suite, including negative controls for every split check and invariance test
 results/        result tables (CSV), each with a .meta.json provenance file
 configs/        splits.yaml (seeds and sizes; its hash is stamped into every split file),

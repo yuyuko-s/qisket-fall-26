@@ -12,3 +12,6 @@ dist/
 .pytest_cache/
 .ipynb_checkpoints/
 .venv/
+
+# A raw-data copy outside data/raw/ (it belongs there, gitignored)
+/dsgdb9nsd.xyz.tar.bz2
