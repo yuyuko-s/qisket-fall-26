@@ -16,6 +16,21 @@ Feature scaling (SCALINGS):
 - quantile_normal: rank-based map to a standard normal; bounded (≈ ±5.2) and insensitive to
                    outliers, but it discards distances between values.
 
+Guard (every unbounded scaling: standard, robust, log_standard, yeo_johnson): scaled values
+are clipped to ±Z_CLIP. Two failures made it necessary, both from new molecules far outside a
+training set's range, which a linear model extrapolates:
+- a column that is almost constant in a training fold gets a tiny standard deviation. In
+  explore_03, radial-distribution bins at physically empty distances (an O–F pair 0.9 Å apart)
+  held only the tails of Gaussians, ~1e-11 to 1e-5; with 1–3 non-zero training rows their sd
+  was ~1e-12, a validation molecule scored z ≈ 10⁷, and ridge predicted up to 10¹⁹ D;
+- a fitted Yeo-Johnson power curve extrapolates steeply: a small molecule's padded
+  Coulomb-matrix eigenvalue, outside the training range, scored z ≈ −10⁴ and ridge predicted
+  1.3 × 10⁵ D on dev_unseen (S_(0,100), PLS(10)).
+Clipping is stateless (a fixed bound, nothing fit), and |z| > 10 cannot occur for more than 1%
+of any column's training values (Chebyshev), so it acts only on such outliers. Kernel models
+are bounded anyway (an RBF or quantum kernel sends a far-away molecule to the mean); the clip
+matters most for linear models.
+
 Target transforms (TARGETS), applied to μ before the model and inverted afterwards, so
 predictions stay in debye (CLAUDE.md rule 8):
 - standard: centre and scale μ. Linear, so it changes nothing for models with an intercept,
@@ -37,6 +52,23 @@ from sklearn.preprocessing import (
 
 SCALINGS: tuple[str, ...] = ("standard", "robust", "log_standard", "yeo_johnson", "quantile_normal")
 TARGETS: tuple[str, ...] = ("standard", "sqrt", "log1p")
+
+#: Bound on scaled values after every unbounded scaling (see the module docstring).
+Z_CLIP = 10.0
+
+
+class ClipScaled(TransformerMixin, BaseEstimator):
+    """Clip already-scaled features to [−bound, bound]. Stateless: nothing is fit."""
+
+    def __init__(self, bound: float = Z_CLIP):
+        self.bound = bound
+
+    def fit(self, X, y=None):
+        self.n_features_in_ = np.asarray(X).shape[1]
+        return self
+
+    def transform(self, X):
+        return np.clip(np.asarray(X, dtype=np.float64), -self.bound, self.bound)
 
 
 class SkewedLog(TransformerMixin, BaseEstimator):
@@ -83,13 +115,13 @@ def scaling_steps(name: str, skew_threshold: float = 1.0) -> list[tuple[str, obj
     """Pipeline steps for feature scaling `name` (see SCALINGS)."""
     match name:
         case "standard":
-            return [("scale", StandardScaler())]
+            return [("scale", StandardScaler()), ("clip", ClipScaled())]
         case "robust":
-            return [("scale", RobustScaler())]
+            return [("scale", RobustScaler()), ("clip", ClipScaled())]
         case "log_standard":
-            return [("log", SkewedLog(skew_threshold)), ("scale", StandardScaler())]
+            return [("log", SkewedLog(skew_threshold)), ("scale", StandardScaler()), ("clip", ClipScaled())]
         case "yeo_johnson":
-            return [("power", PowerTransformer(method="yeo-johnson", standardize=True))]
+            return [("power", PowerTransformer(method="yeo-johnson", standardize=True)), ("clip", ClipScaled())]
         case "quantile_normal":
             return [("quantile", AdaptiveQuantile())]
     raise KeyError(f"unknown scaling {name!r}; choose from {SCALINGS}")

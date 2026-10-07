@@ -103,12 +103,18 @@ def reduction_steps(method: str, k: int) -> list[tuple[str, object]]:
     return [("reduce", step), ("rescale", StandardScaler())]
 
 
+#: Kernel-ridge penalties for the dimension-scaled grid (shared with the quantum kernels).
+KRR_ALPHAS: tuple[float, ...] = (1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 10.0)
+
+
 def rbf_grid(n_features: int) -> dict[str, list]:
     """Kernel-ridge grid whose RBF bandwidths scale with the input dimension: γ = c / d for
-    c in logspace(−2, 2, 9). Squared distances between standardized points grow like 2d, so a
-    fixed γ grid suits only one dimension (X1's grid assumed tens of features)."""
-    return {"model__alpha": [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0],
-            "model__gamma": (np.logspace(-2, 2, 9) / max(n_features, 1)).tolist()}
+    c in logspace(−3, 2, 11), α in KRR_ALPHAS. Squared distances between standardized points
+    grow like 2d, so a fixed γ grid suits only one dimension (X1's grid assumed tens of
+    features). Widened on 2026-10-07 at the smooth end (c from 1e-2 down to 1e-3, α up to 10)
+    together with the quantum kernels' grids, after optima at both edges (DECISIONS.md)."""
+    return {"model__alpha": list(KRR_ALPHAS),
+            "model__gamma": (np.logspace(-3, 2, 11) / max(n_features, 1)).tolist()}
 
 
 def _regressor(name: str, seed: int):

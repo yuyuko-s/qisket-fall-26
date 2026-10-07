@@ -65,3 +65,58 @@ def test_models_accept_every_scaling_and_target(scaling, target, skewed_data):
     est, grid = classical.build("ridge", seed=0, compressed=False, scaling=scaling, target=target)
     r = tune(est, {k: v[:3] for k, v in grid.items()}, skewed_data, y, kfold(len(y), 0), n_jobs=1)
     assert np.isfinite(r.mae) and (r.oof >= 0).all()
+
+
+def _near_empty_column_data():
+    """A training set with one column that is non-zero in a single row (1e-12), like the
+    radial-distribution bins at physically empty distances that blew up ridge in explore_03,
+    and a new molecule with 1e-5 in that column (z-score ~1e8 without the guard)."""
+    rng = np.random.default_rng(3)
+    X = rng.normal(size=(240, 4))
+    X[:, 3] = 0.0
+    X[17, 3] = 1e-12
+    y = 3.0 + X[:, 0] + 0.3 * rng.normal(size=240)
+    return X, y, np.array([[0.1, -0.2, 0.3, 1e-5]])
+
+
+@pytest.mark.parametrize("scaling", ["standard", "log_standard"])
+def test_z_clip_stops_ridge_extrapolating_a_near_empty_column(scaling):
+    from sklearn.base import clone
+
+    X, y, new = _near_empty_column_data()
+    est, _ = classical.build("ridge", seed=0, scaling=scaling, target="standard")
+    est.set_params(regressor__model__alpha=1e-3)
+    assert [name for name, _ in est.regressor.steps][-2] == "clip"
+    guarded = est.fit(X, y).predict(new)[0]
+    assert 0 < guarded < 2 * y.max()
+    unguarded_steps = [s for s in est.regressor.steps if s[0] != "clip"]
+    unguarded = clone(est).set_params(regressor=Pipeline(unguarded_steps)).fit(X, y).predict(new)[0]
+    assert abs(unguarded) > 1e3  # the failure the guard exists for
+
+
+def test_z_clip_leaves_ordinary_columns_unchanged():
+    from sklearn.preprocessing import StandardScaler
+
+    X = np.random.default_rng(4).normal(size=(500, 6))
+    np.testing.assert_array_equal(Pipeline(scaling_steps("standard")).fit_transform(X),
+                                  StandardScaler().fit_transform(X))
+
+
+def test_z_clip_stops_ridge_extrapolating_a_steep_yeo_johnson_curve():
+    """A left-skewed training column makes Yeo-Johnson fit a steep power curve (λ ≈ 10); a new
+    molecule above the training range then scores z ≈ 4,000, as small molecules' padded
+    Coulomb-matrix eigenvalues did on dev_unseen."""
+    from sklearn.base import clone
+
+    rng = np.random.default_rng(5)
+    X = rng.normal(size=(100, 4))
+    X[:, 3] = 20 - rng.lognormal(0, 0.8, 100)
+    y = 3.0 + X[:, 0] + 0.5 * (X[:, 3] - X[:, 3].mean()) + 0.2 * rng.normal(size=100)
+    new = np.array([[0.1, -0.2, 0.3, 40.0]])
+    est, _ = classical.build("ridge", seed=0, scaling="yeo_johnson", target="standard")
+    est.set_params(regressor__model__alpha=1.0)
+    guarded = est.fit(X, y).predict(new)[0]
+    unguarded = clone(est).set_params(regressor=Pipeline([s for s in est.regressor.steps if s[0] != "clip"]))
+    unguarded = unguarded.fit(X, y).predict(new)[0]
+    assert 0 < guarded < 20
+    assert unguarded > 1000
