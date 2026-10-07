@@ -26,8 +26,12 @@ import json
 import sys
 import time
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
+
+from qm9dipole import REPO_ROOT
 
 from qm9dipole.data import PROCESSED_DIR, load_qm9_table
 from qm9dipole.explore import feature_sets, load_catalog, load_features, load_preprocessing
@@ -51,8 +55,8 @@ def main() -> int:
     ap.add_argument("--per-subset", type=int, default=30)
     ap.add_argument("--kernel-block", default="10x5", help="test x training molecules of fidelity-kernel entries")
     ap.add_argument("--max-seconds", type=int, default=300, help="QPU-time cap of the job (refuses a larger plan)")
-    ap.add_argument("--settings", default=str(RESULTS_DIR / "test_run01_quantum.csv"),
-                    help="a test run's quantum-section CSV: the settings each model chose by CV")
+    ap.add_argument("--settings", default="results/test_run01_quantum.csv",
+                    help="a test run's quantum-section CSV (relative to the repository): the settings each model chose by CV")
     ap.add_argument("--dry-run", action="store_true", help="development molecules instead of test molecules; not logged")
     ap.add_argument("--submit", action="store_true", help="submit to the real device named by --backend")
     ap.add_argument("--yes", action="store_true", help="skip the typed confirmation (only with the team's approval)")
@@ -101,7 +105,8 @@ def main() -> int:
     mu = table.set_index("id")["mu"]
     y = pd.concat([features["mu"].astype(np.float64), mu.loc[np.setdiff1d(XA.index, features.index)]])
     needed = {"qkrr" if p == "kernel" else p for p in parts}  # the kernel block uses the fidelity-kernel model
-    settings = {k: v for k, v in settings_from_run(pd.read_csv(args.settings), args.seed, args.n_train).items() if k in needed}
+    settings_csv = REPO_ROOT / args.settings if not Path(args.settings).is_absolute() else Path(args.settings)
+    settings = {k: v for k, v in settings_from_run(pd.read_csv(settings_csv), args.seed, args.n_train).items() if k in needed}
     missing = needed - set(settings)
     if missing:
         print(f"no settings for {sorted(missing)} at seed {args.seed}, N = {args.n_train} in {args.settings}")
