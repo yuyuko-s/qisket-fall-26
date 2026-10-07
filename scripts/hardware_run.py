@@ -56,6 +56,7 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true", help="development molecules instead of test molecules; not logged")
     ap.add_argument("--submit", action="store_true", help="submit to the real device named by --backend")
     ap.add_argument("--yes", action="store_true", help="skip the typed confirmation (only with the team's approval)")
+    ap.add_argument("--no-wait", action="store_true", help="exit after submitting; fetch the result later with --retrieve")
     ap.add_argument("--retrieve", metavar="JOB_ID")
     ap.add_argument("--allow-dirty", action="store_true")
     args = ap.parse_args()
@@ -68,7 +69,7 @@ def main() -> int:
             return 1
         job_record = json.loads(matches[0].read_text())
         for k, v in job_record["args"].items():
-            if k not in ("retrieve", "submit", "yes"):
+            if k not in ("retrieve", "submit", "yes", "no_wait"):
                 setattr(args, k, v)
     parts = [p for p in args.parts.split(",") if p]
     kb = tuple(int(v) for v in args.kernel_block.lower().split("x"))
@@ -153,10 +154,15 @@ def main() -> int:
             return 1
         job = submit(blocks, args.shots, real, max(args.max_seconds, 60))
         job_record = {"job_id": job.job_id(), "tag": tag, "backend": args.backend, "submitted": time.strftime("%Y-%m-%d %H:%M"),
-                      "commit": commit, "args": {k: v for k, v in vars(args).items() if k not in ("submit", "yes", "retrieve")},
+                      "commit": commit, "args": {k: v for k, v in vars(args).items() if k not in ("submit", "yes", "retrieve", "no_wait")},
                       "circuits": int(p["circuits"].sum()), "estimated_qpu_seconds": total,
                       "test_ids": test_ids.tolist(), "subset": which.tolist(), "settings": settings}
+        OUT.mkdir(parents=True, exist_ok=True)
         (OUT / f"{tag}_job.json").write_text(json.dumps(job_record, indent=1))
+        if args.no_wait:
+            print(f"submitted job {job.job_id()} (record: results/hardware/{tag}_job.json). "
+                  f"Fetch and score it later: python scripts/hardware_run.py --retrieve {job.job_id()}")
+            return 0
         print(f"submitted job {job.job_id()} (record: results/hardware/{tag}_job.json); waiting for the result. "
               f"If interrupted: python scripts/hardware_run.py --retrieve {job.job_id()}")
         result = job.result()
