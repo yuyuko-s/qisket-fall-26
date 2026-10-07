@@ -318,21 +318,66 @@ Tabulate for N ∈ {100, 300, 1000}.
 
 ### 7.9 Quantum-feature linear ridge prototype (`models/quantum.py`)
 
-Implemented early at the team's request; this does not mark M4 complete or replace the
-fidelity benchmark above before validation comparisons.
+Implemented early at the team request; this experimental generalization does not mark M4
+complete, replace the fidelity benchmark above, or commit a final hardware architecture.
 
-- Pipeline: training-fitted `StandardScaler` → Qiskit `zz_feature_map` with linear
-  entanglement → exact local Z expectations → scikit-learn `Ridge` on debye labels.
-- One qubit and one expectation feature per input column, intended for 4–8 input features.
-- `reps >= 2`: one phase-encoding layer has zero Z-only expectations; a second layer adds
-  mixing before readout. Defaults `reps=2`, `gamma=1.0`, `alpha=1.0` are untuned examples.
-- The equivalent linear projected kernel is `k(x, x') = phi(x) @ phi(x')`; Ridge also learns
-  an intercept. This is not the fidelity kernel in §7.2 or the RBF projected model in §7.7.
-- `QuantumRidgeRegressor` supports sklearn cloning/CV and clips negative predictions at zero
-  by default (§6.5). Upstream PCA must remain in the fold-fitted pipeline too.
-- `notebooks/02_quantum_regression.ipynb` is a rerunnable synthetic smoke check only. It
-  neither evaluates QM9 test sets nor submits hardware jobs; molecular benchmarking awaits
-  the team's descriptor/PCA inputs. No computational advantage is claimed at this scale.
+- Pipeline: training-fitted `StandardScaler` → `gamma` times standardized inputs → fixed
+  Qiskit data encoder → exact local Z expectations → scikit-learn `Ridge` on debye labels.
+  Circuit parameters are input data, not variational gate weights.
+- Legacy default: `n_qubits=None`, `encoding="zz"`, `simulation_method="statevector"`,
+  one input column per qubit with linear `zz_feature_map` entanglement. The small baseline
+  uses 4–8 input columns. Unchanged defaults are `alpha=1.0`, `gamma=1.0`, `reps=2`,
+  `batch_size=128`, `clip_negative=True`; all are untuned examples.
+- Explicit `n_qubits=Q` is independent of descriptor width. The measured feature array is
+  `(n_samples, Q)`: one dimensionless Z expectation per qubit, not per input column.
+  Encoding/qubit-count changes alter the model, not merely a lossless input reshape.
+
+**Generic placement, not feature-count-specific cases.** The encoding constants define
+ordered axes `zz: (z,)`, `ry: (ry,)`, `ry_rz: (ry, rz)`. Let `A` be the number of axes
+(input-angle slots per qubit/upload) and `capacity = Q * A`. For each zero-based feature `i`:
+
+```text
+upload   = i // capacity
+qubit    = (i % capacity) // A
+rotation = i % A
+```
+
+Unused slots are zero. The fitted transformer exposes
+`n_upload_layers_ = ceil(n_features / capacity)` for one complete input pass; `reps` repeats
+the whole sequence of uploads, not just its first layer. Thus 24 inputs on 8 qubits need
+3 uploads per pass for ZZ/RY, or 2 for RY/RZ; no PCA is required simply to fit the inputs.
+
+- **ZZ:** use the built-in Qiskit `zz_feature_map` with `reps=1` and linear entanglement
+  for each upload block, repeated across complete input passes. Require at least two qubits
+  and `reps >= 2`: a single phase-encoding layer has constant Z-only expectations; the
+  second adds mixing before readout.
+- **RY / RY-RZ:** use library RY gates, or ordered RY then RZ gates, followed by a fixed
+  `RX(pi/4)` mixer after every upload. The mixer makes phase inputs visible to Z readout.
+  Neighboring CZ gates connect steps; require at least one qubit and `reps >= 1`.
+- **Simulation:** `statevector` uses local `StatevectorEstimator`;
+  `matrix_product_state` uses local Aer exact expectations with precision zero and MPS
+  truncation threshold zero. Both are exact up to numerical precision, without finite shots
+  or noise. MPS is useful specifically for shallow nearest-neighbor circuits, not a promise
+  of efficient simulation for arbitrary circuits. All encodings are simulator-only; an IBM
+  hardware adapter and any separately approved jobs remain future work.
+
+`QuantumRidgeRegressor` supports sklearn cloning/CV and clips negative predictions at zero
+by default (§6.5). Every scaler is training-fitted and refitted in each CV fold. Optional
+upstream PCA belongs in the same fold-fitted pipeline. Do not divide arbitrary descriptors by
+255; that normalization is meaningful only for known 8-bit pixel inputs. Ridge learns the
+mapping from expectations to debye, including an intercept. Its equivalent linear projected
+kernel is `k(x, x') = phi(x) @ phi(x')`; this is neither the fidelity kernel in §7.2
+nor the RBF projected model in §7.7.
+
+`notebooks/02_quantum_regression.ipynb` retains the small default ZZ smoke check and adds a
+rerunnable, exploratory comparison on 24 synthetic inputs: 40 training rows, 8 validation
+rows, seed 2026, identical arrays for every combination of qubits `(8, 16, 24)` and encodings
+`("zz", "ry", "ry_rz")`, all using MPS with the unchanged readout/scaling defaults. Artificial
+labels are `2 + 0.4*sin(x0) + 0.2*cos(x1) - 0.1*x2`. It displays a training-mean baseline,
+MAE/RMSE, dimension checks, upload counts, logical depth/two-qubit gates and local elapsed
+time. There is no tuning, final model selection, QM9 test access, or IBM connection/job.
+Logical circuit counts are not hardware-transpiled resource estimates. Molecular benchmarking
+awaits invariant descriptors and paired training-only comparisons; no advantage is claimed.
 
 ---
 

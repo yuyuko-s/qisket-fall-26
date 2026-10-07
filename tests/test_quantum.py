@@ -70,9 +70,18 @@ def test_transformer_defaults_and_fit_contract(training_data):
     assert isinstance(transformer, TransformerMixin) and isinstance(
         transformer, BaseEstimator
     )
-    assert transformer.get_params() == {"reps": 2, "gamma": 1.0, "batch_size": 128}
+    assert transformer.get_params() == {
+        "reps": 2,
+        "gamma": 1.0,
+        "batch_size": 128,
+        "n_qubits": None,
+        "encoding": "zz",
+        "simulation_method": "statevector",
+    }
     assert transformer.fit(X) is transformer
     assert transformer.n_features_in_ == 4
+    assert transformer.n_qubits_ == transformer.n_features_out_ == 4
+    assert transformer.n_upload_layers_ == 1
     assert transformer.circuit_.num_qubits == 4
     assert transformer.circuit_.num_parameters == 4
     assert isinstance(transformer.estimator_, StatevectorEstimator)
@@ -505,7 +514,14 @@ def test_sklearn_clone_preserves_parameters_but_not_fitted_state(
     training_data, estimator_type
 ):
     X, y = training_data
-    parameters = {"reps": 3, "gamma": 0.4, "batch_size": 3}
+    parameters = {
+        "reps": 3,
+        "gamma": 0.4,
+        "batch_size": 3,
+        "n_qubits": None,
+        "encoding": "zz",
+        "simulation_method": "statevector",
+    }
     if estimator_type is QuantumRidgeRegressor:
         parameters.update(alpha=0.2, clip_negative=False)
     estimator = estimator_type(**parameters).fit(X, y)
@@ -531,6 +547,9 @@ def test_regressor_defaults_and_optional_external_pca(training_data):
         "gamma": 1.0,
         "batch_size": 128,
         "clip_negative": True,
+        "n_qubits": None,
+        "encoding": "zz",
+        "simulation_method": "statevector",
     }
     pipeline = Pipeline(
         [("pca", PCA(n_components=2, svd_solver="full")), ("regressor", model)]
