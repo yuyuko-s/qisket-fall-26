@@ -1,5 +1,5 @@
 {
- "git_hash": "b2fb2c3a8bc3c6e3458e4ddb36674873343a4490",
+ "git_hash": "41661a8b4870b57949a861cc03c0748b07a5a906",
  "versions": {
   "python": "3.12.14",
   "qiskit": "2.5.2",
@@ -15,5 +15,5 @@
   "xgboost": "3.4.1",
   "pytest": "9.1.1"
  },
- "label": "exploratory EDA on the training pool P"
+ "label": "exploratory EDA on the training pool P (X2)"
 }
