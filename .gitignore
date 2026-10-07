@@ -3,6 +3,9 @@ data/raw/
 data/processed/
 *.part
 
+# Local credentials
+.env
+
 # Python / tooling
 __pycache__/
 *.py[cod]
