@@ -1,7 +1,7 @@
 """Shared figure style, so every notebook and the final figures read as one set.
 
 Colors follow the entity, never its rank: each model keeps its color in every figure, and
-the quantum model (M4) is reserved slot 1. The categorical hues are the dataviz reference
+the quantum model is reserved slot 1. The categorical hues are the dataviz reference
 palette in its validated order (colorblind-safe for adjacent series in line charts; for
 scatter plots, where every pair must differ, use at most the first three). Magnitudes use
 one blue ramp, light to dark. Figures are light mode, on the chart surface below.
@@ -35,7 +35,7 @@ MODEL_LABELS: dict[str, str] = {
     "charge_net": "charge network", "charge_linear": "linear charge model", "mean": "mean",
 }
 
-#: The quantum models (M4) share the quantum slot's hue: the palette has no ninth hue, so the
+#: The quantum models share the quantum slot's hue: the palette has no ninth hue, so the
 #: family is told apart by line style and marker (composite encoding), always with a legend.
 QUANTUM_STYLES: dict[str, dict] = {
     "qkrr": {"linestyle": "-", "marker": "o"},
@@ -69,7 +69,7 @@ SEQUENTIAL = LinearSegmentedColormap.from_list(
 #: Diverging map for signed quantities such as correlations: red (−) ↔ neutral gray ↔ blue (+).
 DIVERGING = LinearSegmentedColormap.from_list("qm9_diverging", ["#e34948", "#f0efec", "#2a78d6"])
 
-#: Field roles in the EDA (docs/EVALUATION_RULES.md rule 1): usable by headline models, or exploration only.
+#: Field roles in the EDA (headline models use only Z and R): usable by headline models, or exploration only.
 ROLE_COLORS: dict[str, str] = {"legal": SERIES[0], "dft": SERIES[1]}
 ROLE_LABELS: dict[str, str] = {"legal": "function of Z and R (headline-legal)",
                                "dft": "DFT output (exploration only)"}

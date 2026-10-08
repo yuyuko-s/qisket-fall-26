@@ -1,4 +1,4 @@
-"""M0 smoke tests: the stack imports, and Qiskit behaves the way later milestones assume."""
+"""Environment smoke tests: the stack imports, and Qiskit behaves the way the quantum models assume."""
 
 import numpy as np
 import pytest
@@ -21,7 +21,7 @@ def test_qiskit_is_2x():
 
 
 def test_statevector_self_fidelity_is_one():
-    # The fidelity kernel in M4 is k(x, x') = |<psi(x)|psi(x')>|^2, so k(x, x) must be 1.
+    # The fidelity kernel is k(x, x') = |<psi(x)|psi(x')>|^2, so k(x, x) must be 1.
     from qiskit import QuantumCircuit
     from qiskit.quantum_info import Statevector
 
@@ -34,7 +34,7 @@ def test_statevector_self_fidelity_is_one():
 
 
 def test_aer_sampler_runs():
-    # P(all zeros) estimated from shots is how M5 measures kernel values.
+    # P(all zeros) estimated from shots is how a device measures kernel values.
     from qiskit import QuantumCircuit
     from qiskit_aer.primitives import SamplerV2
 

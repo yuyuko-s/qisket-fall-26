@@ -1,4 +1,4 @@
-"""Quantum resource accounting (PLAN §7.8): what each quantum model would cost on IBM hardware.
+"""Quantum resource accounting: what each quantum model would cost on IBM hardware.
 
 For a circuit: qubits, depth and gate counts before transpiling (the logical circuit) and
 after transpiling for a fake IBM Heron backend (native gates rz, sx, x and the two-qubit cz,

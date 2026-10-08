@@ -1,5 +1,5 @@
-"""Latent-charge dipole model (exploration X2, Track A; PLAN §11 "physics-informed charge
-model"). numpy only, with hand-written gradients (checked against finite differences in
+"""Latent-charge dipole model (exploration X2, Track A; a physics-informed charge
+model). numpy only, with hand-written gradients (checked against finite differences in
 tests/test_charge_model.py).
 
 The model builds the dipole **vector** the way physics does, then takes its length:
@@ -26,7 +26,7 @@ It is trained on |μ| alone. QM9 provides no dipole direction, and a global sign
 charges gives the same |μ̂|, so the learned charges are defined up to that sign. Ensembles
 therefore average magnitudes, never vectors.
 
-Units: features standardized on the training atoms (docs/EVALUATION_RULES.md rule 3); charges come out in e
+Units: features standardized on the training atoms; charges come out in e
 when positions are in Å, since |μ̂| = 4.803 D/(e·Å) × ‖μ̂‖.
 """
 
@@ -266,7 +266,7 @@ class LatentChargeModel:
         perm = rng.permutation(n)
         val, train = np.sort(perm[:n_val]), perm[n_val:]
 
-        # Feature standardization on the training atoms only (rule 3).
+        # Feature standardization on the training atoms only.
         train_atoms, _ = _ranges(data.offsets, np.sort(train))
         self.mean_ = data.X[train_atoms].mean(axis=0)
         sd = data.X[train_atoms].std(axis=0)

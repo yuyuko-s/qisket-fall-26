@@ -10,7 +10,7 @@ one expectation per qubit, and a classical ridge readout predicts the target.
 shows this model's saved learning curves, matched classical comparisons, finite shots and IBM hardware results.
 Implementation: [QuantumRidgeRegressor](src/qm9dipole/models/quantum.py),
 training pipeline: [quantum_readout.py](src/qm9dipole/models/quantum_readout.py),
-API documentation: [QUANTUM_FEATURE_MODEL.md](docs/QUANTUM_FEATURE_MODEL.md).
+API documentation: [QUANTUM_FEATURE_MODEL.md](archive/quantum_models/docs/QUANTUM_FEATURE_MODEL.md).
 
 **Findings from the original run-1 results:**
 
@@ -38,11 +38,11 @@ The molecules come from the GDB-17 enumeration (Ruddigkeit et al. 2012).
   downloaded 2026-10-04.
 - **Getting the data:** it is not redistributed here. [notebooks/00_setup_and_data.ipynb](notebooks/00_setup_and_data.ipynb)
   downloads the three files (86 MB) into `data/raw/` and verifies them against figshare's published MD5 checksums. To
-  download by hand, use the file IDs and checksums in [docs/DATA.md](docs/DATA.md).
+  download by hand, use the file IDs and checksums in [docs/DATA.md](archive/quantum_models/docs/DATA.md).
 - **Units:** μ in debye (D); coordinates in ångström (Å).
 
 **Preprocessing** ([notebooks/01_parse_and_splits.ipynb](notebooks/01_parse_and_splits.ipynb), details in
-[docs/DATA.md](docs/DATA.md)). The archive is read in place and parsed into one table with every field kept (0 parse
+[docs/DATA.md](archive/quantum_models/docs/DATA.md)). The archive is read in place and parsed into one table with every field kept (0 parse
 failures). 3,202 molecules are excluded, leaving **130,683**:
 
 | Excluded | Count | Reason |
@@ -243,7 +243,7 @@ QM9: Ramakrishnan et al., *Scientific Data* 1, 140022 (2014); GDB-17: Ruddigkeit
 *Journal of Chemical Information and Modeling* 52, 2864 (2012). The circuit uses Qiskit's ZZ feature map;
 preprocessing and readout use scikit-learn. Hardware access was provided through PINQ² for the hackathon.
 Detailed history and references remain in the [previous writeup](archive/quantum_models/README_previous.md)
-and [decision log](docs/DECISIONS.md).
+and [decision log](archive/quantum_models/docs/DECISIONS.md).
 
 ```text
 src/qm9dipole/models/quantum.py          active circuit and ⟨Z⟩ ridge estimator
@@ -253,5 +253,6 @@ configs/test_eval.yaml                 active ⟨Z⟩ ridge + classical evaluati
 archive/quantum_models/                broader comparison notebooks, configs, drivers and tests
 src/qm9dipole/archive/quantum_kernel.py five archived quantum models
 results/, figures/                    original outputs and presentation figure
-splits/, docs/, tests/                 data IDs, protocol and checks
+splits/, tests/                        data IDs and checks
+archive/quantum_models/docs/           reference documentation and decision history
 ```

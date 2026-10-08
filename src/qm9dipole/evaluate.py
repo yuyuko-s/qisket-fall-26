@@ -1,15 +1,15 @@
-"""Metrics, cross-validation and the learning-curve harnesses (PLAN §6, §9; used from M3 on).
+"""Metrics, cross-validation and the learning-curve harnesses.
 
-Nothing here reads a test set (docs/EVALUATION_RULES.md rule 2). Callers pass training data only, and every
+Nothing here reads a test set. Callers pass training data only, and every
 number this module returns is a cross-validation estimate inside it, or (exploration X2,
 `dev_curve`) a score on a development set held out from training:
-- hyperparameters are chosen by CV MAE, with the same folds for every model (PLAN §4 note);
+- hyperparameters are chosen by CV MAE, with the same folds for every model;
 - fitted transforms (scaler, PCA) live inside the model pipeline, so `clone` + `fit` refits
-  them on each fold's training part (rule 3);
-- negative predictions are clipped at 0 before scoring, since |μ| ≥ 0 (PLAN §6.5 default).
+  them on each fold's training part;
+- negative predictions are clipped at 0 before scoring, since |μ| ≥ 0.
 
 The best-of-grid CV MAE is slightly optimistic (the grid was chosen to minimize it), more so
-for larger grids. The single final evaluation on the test sets (M7) is the unbiased number.
+for larger grids. The test-set runs (`scripts/final_eval.py`) give the unbiased numbers.
 
 Units: μ and every error in debye.
 """
@@ -35,7 +35,7 @@ Folds = list[tuple[np.ndarray, np.ndarray]]
 
 
 def clip_predictions(pred: np.ndarray) -> np.ndarray:
-    """Clip predictions at 0 D (PLAN §6.5): a dipole magnitude cannot be negative."""
+    """Clip predictions at 0 D: a dipole magnitude cannot be negative."""
     return np.clip(pred, 0.0, None)
 
 
@@ -50,7 +50,7 @@ def rmse(y: np.ndarray, pred: np.ndarray) -> float:
 
 
 def kfold(n: int, seed: int, n_splits: int = 5) -> Folds:
-    """PLAN §4 default folds: KFold(5, shuffle=True, random_state=seed) over n samples."""
+    """Default folds: KFold(5, shuffle=True, random_state=seed) over n samples."""
     return list(KFold(n_splits, shuffle=True, random_state=seed).split(np.arange(n)))
 
 
@@ -199,7 +199,7 @@ def learning_curve(
     n_jobs: int = -1,
     progress: bool = True,
 ) -> tuple[pd.DataFrame, dict]:
-    """CV-only learning curves over nested training sets (PLAN §9.2 long format).
+    """CV-only learning curves over nested training sets.
 
     make_specs: (seed, feature-set name) -> {model name: (pipeline, grid)}. The seed fixes
                 model randomness; the feature-set name can select a variant (e.g. PCA).
@@ -208,7 +208,7 @@ def learning_curve(
     y:          μ in debye, indexed by molecule ID.
     train_sets: {seed: {N: training IDs}}, e.g. `Splits.train`.
     make_folds: (training IDs, seed) -> folds. Default: KFold(5, shuffle, random_state=seed),
-                the PLAN §4 default. Pass formula-grouped folds to mimic unseen formulas.
+                the default. Pass formula-grouped folds to mimic unseen formulas.
     eval_set:   label written to the `eval_set` column, e.g. "cv" or "cv_by_formula".
 
     For each (seed, N), one set of folds is shared by every model and feature set (paired

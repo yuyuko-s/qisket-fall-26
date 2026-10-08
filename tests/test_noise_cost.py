@@ -35,7 +35,7 @@ def test_repair_kernel_gives_a_valid_kernel():
 
 
 def test_ideal_overlap_circuits_agree_with_exact_kernel_values():
-    """PLAN §7.5 validation of the fast path: z-scores of Aer shot estimates."""
+    """Validation of the fast path: z-scores of Aer shot estimates."""
     enc = build_encoding_circuit(3, 3, encoding="zz", reps=2)
     rng = np.random.default_rng(3)
     A, B = 0.4 * rng.normal(size=(25, 3)), 0.4 * rng.normal(size=(25, 3))

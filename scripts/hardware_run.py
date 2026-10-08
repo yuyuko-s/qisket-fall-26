@@ -10,7 +10,7 @@ The active run measures the team's ⟨Z⟩ ridge end to end: every training and 
 with the ridge readout refit on the measured features. Settings come from training-only CV
 in run 1. The archived driver in archive/quantum_models/scripts/ retains the broader comparison.
 
-Safety (docs/EVALUATION_RULES.md rule 9): a real device is contacted only with --submit (after a typed confirmation of
+Safety (the team approves every hardware job in advance): a real device is contacted only with --submit (after a typed confirmation of
 the plan, or --yes once the team has approved it in advance) or --retrieve. The job is capped at
 --max-seconds of QPU time. The IBM account is the one saved locally under --account (default "pinq2");
 no token appears in this repository. Runs that score test molecules are logged in results/test_runs.csv.

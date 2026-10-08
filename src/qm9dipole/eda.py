@@ -14,7 +14,7 @@ from qm9dipole.cleaning import moments_from_rotational_constants
 from qm9dipole.descriptors import COMPOSITION_ELEMENTS, composition
 from qm9dipole.features import bonds, inertia_moments
 
-# Roles: what each field may be used for (docs/EVALUATION_RULES.md rule 1).
+# Roles: what each field may be used for (headline models use only Z and R).
 HEADLINE = "headline input"
 TARGET_ROLE = "target"
 FROM_ZR = "function of Z and R (headline-legal)"
@@ -79,7 +79,7 @@ def natural_features(table: pd.DataFrame) -> pd.DataFrame:
 
 
 def natural_role(feature: str) -> str:
-    """Role of a natural feature (docs/EVALUATION_RULES.md rule 1): counts and the rotational constants are
+    """Role of a natural feature (headline models use only Z and R): counts and the rotational constants are
     functions of Z and R; the electronic and thermal properties are DFT outputs."""
     roles = {row[0]: row[4] for row in DATA_DICTIONARY}
     return FROM_ZR if feature.startswith("n_") else roles[feature]

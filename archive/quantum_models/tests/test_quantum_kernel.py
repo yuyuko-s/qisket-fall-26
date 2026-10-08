@@ -153,7 +153,7 @@ def _features(mols, names):
 
 
 def test_quantum_predictions_are_invariant_and_the_negative_control_is_not():
-    """PLAN §8.2 end to end: descriptors from moved molecules -> the fitted quantum model."""
+    """End-to-end invariance: descriptors from moved molecules -> the fitted quantum model."""
     rng = np.random.default_rng(7)
     mols = _molecules(rng, 70)
     y = pd.Series(rng.uniform(0.5, 5.0, size=70))

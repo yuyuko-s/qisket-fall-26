@@ -1,8 +1,8 @@
-# Split configuration (exploration X2 design, src/qm9dipole/splits.py; PLAN §4 as amended).
+# Split configuration (exploration X2 design; see src/qm9dipole/splits.py).
 # Changing anything here changes config_hash and requires rebuilding splits/
-# (notebooks/01_parse_and_splits.ipynb). Log changes in docs/DECISIONS.md.
+# (notebooks/01_parse_and_splits.ipynb).
 
-# Exclusions (docs/DATA.md). The 3,054 uncharacterized molecules are always excluded.
+# Exclusions (counts and reasons: README, section 2). The 3,054 uncharacterized molecules are always excluded.
 exclude_readme_flagged: true   # also drop the 11 hard-to-converge molecules from readme.txt
 # Geometric duplicates (same formula and Coulomb spectrum to this many decimals; same |mu|):
 # keep the smallest ID of each group, so no molecule can appear in two sets.

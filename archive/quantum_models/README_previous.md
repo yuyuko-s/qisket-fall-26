@@ -44,7 +44,7 @@ deviation over 3 seeds.*
 ## 1. Problem and goal
 
 **Prompt.** *"Learn molecular dipoles from fewer labels. How much reference data does a model need to predict
-molecular polarity?"* (Prompt 07/08, QML Advanced; full brief in [docs/BRIEF.md](../../docs/BRIEF.md)). Use a QM9 subset to
+molecular polarity?"* (Prompt 07/08, QML Advanced; full brief in [docs/BRIEF.md](docs/BRIEF.md)). Use a QM9 subset to
 predict dipole-moment magnitude, compare a quantum regressor with classical models at several data sizes, and test
 familiar and unseen molecular formulas. Show prediction error vs label count, generalization and quantum cost.
 
@@ -84,11 +84,11 @@ The molecules come from the GDB-17 enumeration (Ruddigkeit et al. 2012).
   downloaded 2026-10-04.
 - **Getting the data:** it is not redistributed here. [notebooks/00_setup_and_data.ipynb](../../notebooks/00_setup_and_data.ipynb)
   downloads the three files (86 MB) into `data/raw/` and verifies them against figshare's published MD5 checksums. To
-  download by hand, use the file IDs and checksums in [docs/DATA.md](../../docs/DATA.md).
+  download by hand, use the file IDs and checksums in [docs/DATA.md](docs/DATA.md).
 - **Units:** μ in debye (D); coordinates in ångström (Å).
 
 **Preprocessing** ([notebooks/01_parse_and_splits.ipynb](../../notebooks/01_parse_and_splits.ipynb), details in
-[docs/DATA.md](../../docs/DATA.md)). The archive is read in place and parsed into one table with every field kept (0 parse
+[docs/DATA.md](docs/DATA.md)). The archive is read in place and parsed into one table with every field kept (0 parse
 failures). 3,202 molecules are excluded, leaving **130,683**:
 
 | Excluded | Count | Reason |
@@ -166,7 +166,7 @@ Z, R  →  188 invariant features  →  Yeo-Johnson scaling (clipped at ±10)  �
 | Quantum-feature ⟨Z⟩ ridge (team model) | ZZ map | ⟨Z⟩ of every qubit, then ridge regression | the team's original model; also run on hardware |
 
 The angle scale γ and the ridge penalty α are tuned by 5-fold cross-validation inside each training set. Details of
-the team model are in [docs/QUANTUM_FEATURE_MODEL.md](../../docs/QUANTUM_FEATURE_MODEL.md).
+the team model are in [docs/QUANTUM_FEATURE_MODEL.md](docs/QUANTUM_FEATURE_MODEL.md).
 
 **What Qiskit does here.**
 - **Circuits:** every circuit is a Qiskit `QuantumCircuit` (`zz_feature_map` and library gates).
@@ -194,7 +194,7 @@ RBF and tree models) and more, in two tracks:
   atom from its environment (three rounds of message passing over bonds) and returns |Σ qᵢ rᵢ + atomic dipoles|.
   The dipole is built the way physics builds it, so the model is invariant by construction.
 
-**Fair-comparison protocol** (decided before any quantum result; [docs/DECISIONS.md](../../docs/DECISIONS.md)).
+**Fair-comparison protocol** (decided before any quantum result; [docs/DECISIONS.md](docs/DECISIONS.md)).
 - **Same everything:** quantum and classical kernel models share the inputs, training sets, folds, CV metric (pooled
   MAE in debye), refit and grid size (88 candidates each).
 - **Same tuning code:** the quantum tuning code reproduces the classical one exactly when given the RBF kernel (unit
@@ -333,7 +333,7 @@ python scripts/hardware_run.py --retrieve <job id>                        # fetc
 
 ## 5. Experiments
 
-**What we ran** (every design decision and its reason is logged in [docs/DECISIONS.md](../../docs/DECISIONS.md)):
+**What we ran** (every design decision and its reason is logged in [docs/DECISIONS.md](docs/DECISIONS.md)):
 
 | Experiment | Where | Settings and budget | Status |
 |---|---|---|---|

@@ -1,4 +1,4 @@
-"""Invariance checks (M2, PLAN §8): does a descriptor change when the molecule is rotated,
+"""Invariance checks: does a descriptor change when the molecule is rotated,
 translated or has its atoms relabeled? A physically sensible |μ| predictor must not.
 
 Each transform maps (Z, R, rng) to a transformed (Z, R) describing the same molecule.
@@ -14,7 +14,7 @@ from scipy.spatial.transform import Rotation
 
 from qm9dipole.descriptors import DESCRIPTORS
 
-#: Default tolerance (PLAN §8.1). Double-precision noise in these descriptors is ~1e-12.
+#: Default tolerance. Double-precision noise in these descriptors is ~1e-12.
 ATOL = 1e-8
 
 

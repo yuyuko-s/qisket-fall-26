@@ -16,6 +16,7 @@ importable as `qm9dipole.archive.quantum_kernel`. Shared ⟨Z⟩ readout helpers
 [quantum_readout.py](../../src/qm9dipole/models/quantum_readout.py); the archive re-exports them
 for historical reproduction.
 
+- [docs/](docs/): archived reference documentation and decision history.
 - [Previous writeup](README_previous.md): original multi-model results and discussion.
 - [notebooks/](notebooks/): broader development comparisons, shots/noise study and original test presentation.
 - [configs/](configs/): original run-1 and run-2 configurations.

@@ -1,4 +1,4 @@
-"""Molecular descriptors (M2, PLAN §5). Every descriptor is a function of (Z, R) only.
+"""Molecular descriptors. Every descriptor is a function of (Z, R) only.
 
 - composition: counts of C, H, N, O, F (5 numbers). Invariant by construction, but blind to
   geometry, so it cannot tell isomers apart.
@@ -7,7 +7,7 @@
   distances, so its spectrum is invariant to rotation and translation; eigenvalues do not
   depend on the order of the atoms, so it is also invariant to relabeling.
 - raw_coordinates: flattened, zero-padded coordinates. Deliberately NOT invariant: it is the
-  negative control that the invariance tests must catch (PLAN §8.3).
+  negative control that the invariance tests must catch.
 - engineered: physics-motivated geometry, bond and polarity features (exploration; defined
   in `qm9dipole.features`, names in `features.ENGINEERED_NAMES`).
 - groups, qeq, rdf (exploration X2): molecule-level sums of the per-atom environments in
@@ -15,7 +15,7 @@
   dipole and charge spread; a radial distribution function per element pair.
 
 Fitted transforms (standardization, PCA for the 8-qubit "compressed" variant) are not here:
-they must be fit on each training set, so they live in the model pipelines (M3+).
+they must be fit on each training set, so they live in the model pipelines.
 
 Units: R in Å; Coulomb-matrix distances in bohr.
 """
@@ -33,7 +33,7 @@ from qm9dipole.features import ENGINEERED_NAMES, engineered
 ANGSTROM_TO_BOHR = 1.8897261
 MAX_ATOMS = 29  # largest QM9 molecule, hydrogens included
 
-#: Element order of the composition vector (PLAN §5): C, H, N, O, F.
+#: Element order of the composition vector: C, H, N, O, F.
 COMPOSITION_ELEMENTS: tuple[str, ...] = ("C", "H", "N", "O", "F")
 _COMPOSITION_Z = np.array([6, 1, 7, 8, 9])
 

@@ -12,6 +12,8 @@ it that records the commit, the configuration and the package versions it was ma
 the config hash. Figures are grouped the same way in [../figures/](../figures/). The code finds every file by its
 name (`qm9dipole.provenance.results_file`).
 
+**For slides:** [model_summary.md](model_summary.md) documents every quantum model and its same-size classical counterpart (inputs, training sizes, test MAE and RMSE, what each model does); [model_summary.csv](model_summary.csv) holds the same numbers.
+
 ## [comparison/](comparison/): quantum models vs classical models of the same size
 
 Historical comparison: quantum kernel ridge (three encoders), a no-entanglement control, the projected quantum kernel and the

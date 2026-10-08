@@ -8,7 +8,7 @@ output, how the next step loads it, and the feature sets every model notebook us
     04 models ─▶ results/explore04_*.csv (learning curves, Track A and Track B)
     05 generalization ─▶ results/explore05_*.csv
 
-Exploration X2 (DECISIONS.md, 2026-10-06) works on the **development universe**: the training
+Exploration X2 (the 2026-10-06 redesign of the classical analysis around accuracy) works on the **development universe**: the training
 pool plus the two development sets (`dev`, `dev_unseen`), never a test set. Per-atom features
 are not stored (about 0.7 GB); `load_atoms` recomputes them from Z and R in about a minute and
 keeps the columns notebook 02 kept.
@@ -73,7 +73,7 @@ def feature_sets(catalog: pd.DataFrame) -> dict[str, list[str]]:
 
     Headline-legal (functions of Z and R):
     - composition: atom counts (the brief's composition-only ablation);
-    - cm: the Coulomb-matrix spectrum (PLAN §5);
+    - cm: the Coulomb-matrix spectrum;
     - structure: composition + X1's engineered features (X1's best set, for continuity);
     - structure+: structure + charged groups and atom types + the QEq dipole (X2);
     - all_legal: structure+ + the per-element-pair radial distribution + cm (X2's richest).

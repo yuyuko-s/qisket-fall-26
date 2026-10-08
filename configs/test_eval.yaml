@@ -1,5 +1,5 @@
 # Test-set evaluation (scripts/final_eval.py; presented by notebooks/07_quantum_feature_ridge.ipynb).
-# Iterating after a test run is allowed (docs/EVALUATION_RULES.md rule 2): change this file or the code, say
+# Iterating after a test run is allowed (the team's decision): change this file or the code, say
 # what changed in `note`, commit, and run again. Each run is logged in results/test_runs.csv.
 note: "presentation scope: qridge and classical baselines; original run-1 preprocessing and grids retained"
 

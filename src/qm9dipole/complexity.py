@@ -13,8 +13,8 @@ df = tr(S) = Σᵢ ∂ŷᵢ/∂yᵢ, the total self-influence of the training la
 - mean: 1; OLS: 1 + rank of the centred design;
 - ridge (with intercept): 1 + Σⱼ dⱼ² / (dⱼ² + α), d = singular values of the centred design;
 - kernel ridge on a centred target (no intercept): S = K(K+αI)⁻¹(I − J) + J, J = 11ᵀ/n,
-  so df = 1 + tr(K(K+αI)⁻¹) − 1ᵀK(K+αI)⁻¹1 / n. The same formula will apply to the
-  quantum kernel in M4.
+  so df = 1 + tr(K(K+αI)⁻¹) − 1ᵀK(K+αI)⁻¹1 / n. The same formula applies to the
+  quantum kernels of explore_06.
 For models that are not linear smoothers (random forest, boosting), df is estimated with
 Ye's (1998) generalized degrees of freedom: perturb y by small Gaussian noise δ, refit, and
 sum the per-sample slopes of ŷᵢ on δᵢ, df ≈ Σᵢ cov(ŷᵢ, δᵢ) / τ².

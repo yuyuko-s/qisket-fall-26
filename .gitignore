@@ -1,4 +1,4 @@
-# Data: raw downloads and anything regenerated from them (see docs/DATA.md)
+# Data: raw downloads and anything regenerated from them (notebooks 00 and 01 rebuild them)
 data/raw/
 data/processed/
 *.part
