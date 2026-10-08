@@ -56,7 +56,7 @@ def test_rerun_with_modified_file_raises_and_keeps_it(tmp_path, source):
 
 
 def test_manifest_matches_plan():
-    # PLAN §3.1 names figshare file 3195389 for the tarball.
+    # figshare file 3195389 is the QM9 tarball.
     assert QM9_FILES[0].figshare_id == 3195389
     assert {f.name for f in QM9_FILES} == {
         "dsgdb9nsd.xyz.tar.bz2", "uncharacterized.txt", "readme.txt",

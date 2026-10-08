@@ -13,7 +13,7 @@ overlap with itself, for the depolarizing correction). Models use the settings t
 run (default: run 1). The test molecules are those of test run 1's noise section (30 per quantum test
 subset), so the device, the FakeFez/FakeQuebec noise models and exact simulation compare directly.
 
-Safety (docs/EVALUATION_RULES.md rule 9): a real device is contacted only with --submit (after a typed confirmation of
+Safety (the team approves every hardware job in advance): a real device is contacted only with --submit (after a typed confirmation of
 the plan, or --yes once the team has approved it in advance) or --retrieve. The job is capped at
 --max-seconds of QPU time. The IBM account is the one saved locally under --account (default "pinq2");
 no token appears in this repository. Runs that score test molecules are logged in results/test_runs.csv.

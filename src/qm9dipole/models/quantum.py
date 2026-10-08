@@ -303,7 +303,7 @@ class QuantumRidgeRegressor(RegressorMixin, BaseEstimator):
     ``y`` is a one-dimensional array of dipole magnitudes in debye. The readout
     is fitted directly on these labels, so predictions are already in debye,
     not bounded to the expectation range [-1, 1]. By default negative magnitude
-    predictions are clipped at zero, following PLAN §6.5.
+    predictions are clipped at zero, since a dipole magnitude cannot be negative.
 
     ``alpha`` controls ridge regularization, ``gamma`` scales standardized
     inputs into circuit angles, and ``reps`` repeats input-upload passes.

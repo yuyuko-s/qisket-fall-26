@@ -1,14 +1,14 @@
 """Formula holdouts, test and development sets, anchors and nested training sets.
 
-Design (exploration X2, DECISIONS.md 2026-10-06; it replaces PLAN §3.5's 25-per-formula pool
-and PLAN §4's small test sets). From the kept molecules (exclusions and geometric duplicates
+Design (exploration X2, 2026-10-06; it replaces an earlier 25-molecules-per-formula pool
+and its small test sets). From the kept molecules (exclusions and geometric duplicates
 removed):
 
 1. **Unseen-formula test set** `test_unseen`: every molecule of a stratified 15% of formulas
    (by heavy-atom count). The brief's "formulas absent from training".
 2. **Development unseen formulas** `dev_unseen`: every molecule of a further stratified draw
    of formulas. They estimate new-formula error during development, so the test holdout is
-   only ever read once (M7).
+   scored only by `scripts/final_eval.py`.
 3. **Familiar test set** `test_familiar`: a random sample of the remaining molecules, each
    formula keeping at least one molecule in the training pool.
 4. **Development set** `dev`: a random sample of what is left, under the same rule. Learning
@@ -17,7 +17,7 @@ removed):
 6. **Quantum subsets** (inference costs n_test × N circuits): `test_unseen_q`, at most a few
    molecules per unseen formula; `test_familiar_q`, a few molecules from each of a few
    familiar formulas, which are **anchored**: each seed puts one molecule of every such
-   formula first in its fill order, so they are in every training set (docs/EVALUATION_RULES.md rule 5).
+   formula first in its fill order, so they are in every training set.
 7. **Nested training sets**: per training seed s, an order of P (anchors, then a random
    permutation of the rest); S_(s,N) is its first N molecules, for every N in the config and,
    optionally, N = |P| (the full pool, the same set for every seed).
@@ -27,7 +27,7 @@ independent stream per draw, so changing one draw never shifts another; stream 1
 formulas) is the stream X1 used, so the unseen formulas are the same 93 as before. Each
 training seed s uses SeedSequence([split_seed, s]), so test sets cannot depend on it.
 
-Splits are saved as QM9 molecule IDs (docs/EVALUATION_RULES.md rule 7).
+Splits are saved as QM9 molecule IDs.
 """
 
 from __future__ import annotations
@@ -226,7 +226,7 @@ def training_pool(s: Splits, table: pd.DataFrame | None = None) -> np.ndarray:
 
 
 def check_splits(s: Splits, table: pd.DataFrame, excluded_ids: set[int] | frozenset[int]) -> None:
-    """Raise SplitCheckError unless every split invariant holds. Labels follow PLAN §4:
+    """Raise SplitCheckError unless every split invariant holds. Labels:
 
     (a) disjoint: P, both test sets and both development sets; training sets inside P; the
         quantum subsets inside their test sets;

@@ -1,9 +1,9 @@
-"""Test-set evaluation (M7): features for the test molecules, the model roster of
+"""Test-set evaluation: features for the test molecules, the model roster of
 `configs/test_eval.yaml`, finite-shot and noisy inference on the quantum test subsets, and the
 log of test runs. The driver is `scripts/final_eval.py`; `notebooks/07_test_comparison.ipynb`
 presents a run.
 
-The team iterates after test runs (docs/EVALUATION_RULES.md rule 2): change the config or the code, describe
+The team iterates after test runs (the team's decision; every run is logged): change the config or the code, describe
 the change in the config's `note`, run again. Every run gets the next run number, its results
 are written as `results/test_runNN_<section>.csv` (with provenance sidecars), and one row is
 appended to `results/test_runs.csv`. Inside a run, every model still tunes on its training set

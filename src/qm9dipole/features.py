@@ -1,9 +1,9 @@
-"""Engineered, physics-motivated descriptors for |μ| (exploration; docs/EVALUATION_RULES.md "Exploration").
+"""Engineered, physics-motivated descriptors for |μ| (functions of Z and R).
 
 Every feature is a function of (Z, R) alone plus fixed tabulated constants (covalent radii,
 Pauling electronegativities, isotope masses), never another QM9 property, so these are headline-legal
 inputs. Each is invariant to rotation, translation and atom relabeling; they are registered
-in `descriptors.MODEL_DESCRIPTORS`, so the M2 invariance tests cover them.
+in `descriptors.MODEL_DESCRIPTORS`, so the descriptor invariance tests cover them.
 
 Groups (names in ENGINEERED_NAMES):
 - geometry: radius of gyration, the three eigenvalues (moments) of the gyration tensor,
@@ -140,8 +140,8 @@ def bond_dipoles(Z: np.ndarray, R: np.ndarray, pairs: np.ndarray) -> tuple[float
 def electronegativity_dipole(Z: np.ndarray, R: np.ndarray) -> float:
     """|Σᵢ qᵢ Rᵢ| for atom-centred pseudo-charges qᵢ derived from Pauling electronegativity.
 
-    A crude stand-in for the point-charge dipole |Σ qᵢ rᵢ| that the Mulliken charges give
-    (PLAN §11), built only from Z and R. Pauling·Å; must be invariant to rotation,
+    A crude stand-in for the point-charge dipole |Σ qᵢ rᵢ| that the Mulliken charges give,
+    built only from Z and R. Pauling·Å; must be invariant to rotation,
     translation and atom relabeling (tests/test_features.py).
     """
     chi = _lookup(ELECTRONEGATIVITY, Z)
@@ -232,7 +232,7 @@ def engineered(Z: np.ndarray, R: np.ndarray) -> np.ndarray:
 # --------------------------------------------------------------------------------------
 # Exploration-only features: they read DFT outputs (Mulliken charges, vibrational
 # frequencies) from the same calculation as μ, so they may only appear in results that are
-# labeled with the inputs used (docs/EVALUATION_RULES.md rule 1). Not descriptors.
+# labeled with the inputs used (headline models use only Z and R). Not descriptors.
 # --------------------------------------------------------------------------------------
 
 #: 1 e·Å in debye.

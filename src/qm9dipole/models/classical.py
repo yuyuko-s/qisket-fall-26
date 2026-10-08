@@ -1,19 +1,19 @@
-"""Classical regressors as scikit-learn pipelines with their CV grids (PLAN §6).
+"""Classical regressors as scikit-learn pipelines with their CV grids.
 
 Every model is TransformedTargetRegressor(target transform, Pipeline(scaling → [PCA(k)] →
 regressor)). Scaling and target options are in `preprocess` (explore_03 chooses them by
 CV). Because every fitted step sits inside the estimator, cloning and fitting it on a fold's
 training part refits all of them there: the compressed variant and the target transform are
-fit on each training set (and fold) only (docs/EVALUATION_RULES.md rule 3). Hyperparameter names carry the
+fit on each training set (and fold) only. Hyperparameter names carry the
 wrapper's prefix, e.g. "regressor__model__alpha".
 
 Models:
-- mean:    the training-set mean (PLAN §6.1);
+- mean:    the training-set mean;
 - linear:  ordinary least squares, no regularization;
 - ridge:   L2-penalized least squares;
-- rbf_krr: RBF kernel ridge (PLAN §6.2), the classical counterpart of the quantum kernel
+- rbf_krr: RBF kernel ridge, the classical counterpart of the quantum kernel
            model, which has the same form with the RBF kernel swapped for a circuit fidelity;
-- rf:      random forest (PLAN §6.3);
+- rf:      random forest;
 - xgb:     gradient-boosted trees (XGBoost).
 
 Targets: μ in debye, transformed by `target` (default: standardized, which gives kernel
@@ -112,7 +112,7 @@ def rbf_grid(n_features: int) -> dict[str, list]:
     c in logspace(−3, 2, 11), α in KRR_ALPHAS. Squared distances between standardized points
     grow like 2d, so a fixed γ grid suits only one dimension (X1's grid assumed tens of
     features). Widened on 2026-10-07 at the smooth end (c from 1e-2 down to 1e-3, α up to 10)
-    together with the quantum kernels' grids, after optima at both edges (DECISIONS.md)."""
+    together with the quantum kernels' grids, after optima sat at both edges of the old grids."""
     return {"model__alpha": list(KRR_ALPHAS),
             "model__gamma": (np.logspace(-3, 2, 11) / max(n_features, 1)).tolist()}
 

@@ -1,4 +1,4 @@
-"""Quantum kernel ridge regression (M4), simulated exactly: fidelity and projected quantum kernels.
+"""Quantum kernel ridge regression, simulated exactly: fidelity and projected quantum kernels.
 
 Concepts, for a team that knows ML but is new to quantum computing:
 - **Encoding (feature map).** A fixed circuit U(x) whose rotation angles are a molecule's k
@@ -6,7 +6,7 @@ Concepts, for a team that knows ML but is new to quantum computing:
   Run on |0…0⟩, it prepares an n-qubit state |ψ(x)⟩: a unit vector of 2ⁿ complex amplitudes.
 - **Fidelity kernel.** k(x, x′) = |⟨ψ(x)|ψ(x′)⟩|², the squared overlap of two prepared states.
   On hardware it is estimated by running U(x′) then U(x)† and counting how often every qubit
-  reads 0 (PLAN §7.5). It is a valid kernel (symmetric, positive semidefinite, 1 on the
+  reads 0. It is a valid kernel (symmetric, positive semidefinite, 1 on the
   diagonal), so kernel ridge regression uses it exactly as it uses the RBF kernel.
 - **γ plays the role of the RBF bandwidth.** Small γ: every state is nearly |ψ(0)⟩, K ≈ all
   ones, and the model is nearly linear. Large γ: states become nearly orthogonal and K ≈ the
@@ -20,7 +20,7 @@ Concepts, for a team that knows ML but is new to quantum computing:
   noiseless quantum computer would give with infinitely many measurements. `noise.py` adds
   finite shots and hardware noise.
 
-Fairness (DECISIONS.md, 2026-10-07): `KernelRidgeFitter` tunes any kernel with the protocol the
+Fairness (decided before any quantum result on QM9): `KernelRidgeFitter` tunes any kernel with the protocol the
 classical models use (`fitters.TabularFitter` + `evaluate.tune`): the same folds, the pooled
 out-of-fold MAE in debye after inverting the target transform and clipping at 0, ties to the
 first candidate, and a refit on the whole training set. With `RBFKernel` it reproduces
@@ -257,7 +257,7 @@ def zz_readout_closed_form(angles: np.ndarray) -> np.ndarray:
 def offdiag_stats(K: np.ndarray) -> tuple[float, float]:
     """Mean and standard deviation of the off-diagonal entries of a square kernel matrix.
 
-    Concentration check (PLAN §7.3): sd < 1e-3 means the kernel barely distinguishes molecules
+    Concentration check: sd < 1e-3 means the kernel barely distinguishes molecules
     (all ~1: γ too small; all ~0: γ too large, states nearly orthogonal)."""
     off = K[~np.eye(len(K), dtype=bool)]
     return float(off.mean()), float(off.std())

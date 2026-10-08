@@ -1,5 +1,5 @@
 # Test-set evaluation (scripts/final_eval.py; presented by notebooks/07_test_comparison.ipynb).
-# Iterating after a test run is allowed (docs/EVALUATION_RULES.md rule 2): change this file or the code, say
+# Iterating after a test run is allowed (the team's decision): change this file or the code, say
 # what changed in `note`, commit, and run again. Each run is logged in results/test_runs.csv.
 # Run 1 (commit cc6fab3): the development settings, all four sections. Its config is in that commit
 # and in every results/test_run01_*.meta.json.

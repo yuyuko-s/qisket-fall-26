@@ -1,6 +1,6 @@
 # Exploration chain (notebooks/explore_0*): settings every notebook reads, so a change here
-# flows through all later steps. Values follow from the EDA (explore_01); reasons are logged
-# in docs/DECISIONS.md. Nothing here is chosen on a test set.
+# flows through all later steps. Values follow from the EDA (explore_01); the comments give
+# the reasons. Nothing here is chosen on a test set.
 
 eda:
   # Random subsample of the training pool for slow estimators (mutual information, per-atom

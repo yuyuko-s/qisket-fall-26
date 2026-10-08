@@ -77,7 +77,7 @@ def duplicate_extras(ids: np.ndarray, formulas: pd.Series | np.ndarray, spectra:
                      decimals: int = 2) -> frozenset[int]:
     """IDs to exclude so that every duplicate group keeps exactly one molecule, its smallest
     ID. Dropping the extra copies before splitting means no molecule can sit in two sets
-    (exploration X2; DECISIONS.md)."""
+    (exploration X2)."""
     group = duplicate_groups(ids, formulas, spectra, decimals)
     return frozenset(int(i) for i, first in group.items() if i != first)
 

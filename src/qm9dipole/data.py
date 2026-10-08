@@ -1,4 +1,4 @@
-"""QM9 raw data: download and integrity checks (M0), parsing and exclusions (M1).
+"""QM9 raw data: download and integrity checks, parsing and exclusions.
 
 Source: Ramakrishnan et al., Scientific Data 1, 140022 (2014), figshare collection 978904.
 The 133,885-molecule tarball is streamed with `tarfile` rather than extracted. It is parsed
@@ -7,7 +7,7 @@ files.
 
 The table keeps every field of every record. Headline models use only HEADLINE_INPUTS
 (atomic numbers and coordinates) to predict TARGET; the Mulliken charges and the other
-properties are kept for clearly labeled exploration (docs/EVALUATION_RULES.md, "Exploration").
+properties are kept for clearly labeled exploration, never as headline inputs.
 
 Units: coordinates R in Å, dipole magnitude mu in debye, charges q in e; other properties as
 in readme.txt.
@@ -50,7 +50,7 @@ class RawFile:
         return f"https://ndownloader.figshare.com/files/{self.figshare_id}"
 
 
-#: The three files PLAN §3.1 needs. Sizes and MD5s are from api.figshare.com (2026-10-04).
+#: The three QM9 files the project needs. Sizes and MD5s are from api.figshare.com (2026-10-04).
 QM9_FILES: tuple[RawFile, ...] = (
     RawFile("dsgdb9nsd.xyz.tar.bz2", 3195389, 86_144_227, "ad1ebd51ee7f5b3a6e32e974e5d54012"),
     RawFile("uncharacterized.txt", 3195404, 486_752, "a361887bacb427b8a0ce7903d92a53b4"),
@@ -120,7 +120,7 @@ def fetch(raw: RawFile, dest_dir: Path = RAW_DIR, url: str | None = None) -> Pat
 
 
 def fetch_all(dest_dir: Path = RAW_DIR) -> list[dict[str, object]]:
-    """Fetch every QM9 file and return manifest rows for docs/DATA.md."""
+    """Fetch every QM9 file and return manifest rows (file, size, checksums)."""
     rows = []
     for raw in QM9_FILES:
         path = fetch(raw, dest_dir)
@@ -135,12 +135,12 @@ def fetch_all(dest_dir: Path = RAW_DIR) -> list[dict[str, object]]:
 
 
 # --------------------------------------------------------------------------------------
-# Parsing (M1). File format: data/raw/readme.txt, "Format"; PLAN §3.2.
+# Parsing. File format: data/raw/readme.txt, "Format".
 # --------------------------------------------------------------------------------------
 
 ELEMENT_Z: dict[str, int] = {"H": 1, "C": 6, "N": 7, "O": 8, "F": 9}
 
-#: Formula element order (PLAN §3.3): C, H, then the rest alphabetically.
+#: Formula element order: C, H, then the rest alphabetically.
 FORMULA_ORDER: tuple[str, ...] = ("C", "H", "F", "N", "O")
 
 #: The 15 properties on line 2 after "gdb" and the index, in readme order and with readme
@@ -186,7 +186,7 @@ def parse_xyz(text: str) -> dict:
     Values are kept as found; cleaning (e.g. of doubled frequency lists) is a later step.
 
     Headline models use only HEADLINE_INPUTS. q, freqs and the other properties come from
-    the same DFT calculation as mu, so they are for labeled exploration (docs/EVALUATION_RULES.md, rule 1).
+    the same DFT calculation as mu, so they are for labeled exploration (headline models use only Z and R).
     """
     lines = text.splitlines()
     n_atoms = int(lines[0])
@@ -282,7 +282,7 @@ def qm9_table_is_current(path: Path = QM9_PARQUET) -> bool:
 
 
 # --------------------------------------------------------------------------------------
-# Exclusions (M1). Counts and reasons are documented in docs/DATA.md.
+# Exclusions. Counts and reasons: README, section 2.
 # --------------------------------------------------------------------------------------
 
 #: readme.txt "Notes": the 11 molecules whose geometries were difficult to converge.

@@ -1,4 +1,4 @@
-"""Finite-shot and noisy inference for the quantum models (M5; local simulators only).
+"""Finite-shot and noisy inference for the quantum models (local simulators only).
 
 Concepts, for the team:
 - **Shots.** A quantum computer never returns an exact kernel value. The overlap circuit
@@ -17,7 +17,7 @@ Concepts, for the team:
 
 The fast path (`shot_kernel`, `shot_expectations`) draws exactly the distribution an ideal
 device produces, from the exact values; `sample_overlaps` / `sample_bloch` run real circuits
-on Aer, ideal or noisy, to validate it and to measure the effect of noise (PLAN §7.5–7.6).
+on Aer, ideal or noisy, to validate it and to measure the effect of noise.
 Nothing here contacts IBM hardware.
 """
 
@@ -41,7 +41,7 @@ def shot_expectations(E: np.ndarray, shots: int, rng: np.random.Generator) -> np
 
 
 def repair_kernel(K: np.ndarray) -> np.ndarray:
-    """Make a shot-estimated square kernel usable for training (PLAN §7.5): symmetrize, set the
+    """Make a shot-estimated square kernel usable for training: symmetrize, set the
     diagonal to 1 (k(x, x) = 1 exactly), and clip negative eigenvalues to 0."""
     K = (K + K.T) / 2
     np.fill_diagonal(K, 1.0)

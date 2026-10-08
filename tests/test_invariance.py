@@ -1,4 +1,4 @@
-"""Descriptor and invariance tests (M2, PLAN §8).
+"""Descriptor and invariance tests.
 
 Model descriptors must not change under rotation, translation or atom relabeling; the
 raw-coordinate negative control must change under all three, proving the tests can fail.
