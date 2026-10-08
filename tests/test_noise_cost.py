@@ -6,7 +6,7 @@ import pytest
 
 from qm9dipole import cost, noise
 from qm9dipole.models.quantum import build_encoding_circuit
-from qm9dipole.models.quantum_kernel import FidelityKernel, bloch_vectors
+from qm9dipole.archive.quantum_kernel import FidelityKernel, bloch_vectors
 from qm9dipole.models.qsim import BatchedCircuit, fidelity_kernel
 
 

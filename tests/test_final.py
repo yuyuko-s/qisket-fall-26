@@ -9,7 +9,8 @@ from qm9dipole.data import QM9_PARQUET
 from qm9dipole.explore import FEATURES_PATH
 from qm9dipole.final import evaluation_frame, legal_features, log_run, next_run_number, shot_scores
 from qm9dipole.models.fitters import TabularFitter
-from qm9dipole.models.quantum_kernel import FidelityKernel, KernelRidgeFitter, ProjectedKernel, quantum_ridge_build
+from qm9dipole.archive.quantum_kernel import FidelityKernel, KernelRidgeFitter, ProjectedKernel
+from qm9dipole.models.quantum_readout import quantum_ridge_build
 
 
 def test_run_log_numbers_runs_and_appends(tmp_path):

@@ -12,7 +12,7 @@ from qm9dipole.descriptors import MODEL_DESCRIPTORS, feature_frame
 from qm9dipole.invariance import TRANSFORMS
 from qm9dipole.models import classical
 from qm9dipole.models.fitters import TabularFitter
-from qm9dipole.models.quantum_kernel import (
+from qm9dipole.archive.quantum_kernel import (
     FidelityKernel, KernelRidgeFitter, ProjectedKernel, RBFKernel, ShotNoisyKernel, bloch_vectors, kernel_spectrum,
     kernel_target_alignment, offdiag_stats, quantum_gamma_grid,
 )
@@ -67,7 +67,7 @@ def test_unentangled_encoding_is_the_classical_cosine_kernel():
 def test_quantum_gamma_grid_matches_the_rbf_grid_in_the_small_angle_limit():
     for d in (4, 10, 16):
         np.testing.assert_allclose(np.array(quantum_gamma_grid(d)) ** 2 / 4, classical.rbf_grid(d)["model__gamma"])
-    from qm9dipole.models.quantum_kernel import KRR_ALPHAS
+    from qm9dipole.archive.quantum_kernel import KRR_ALPHAS
     assert list(KRR_ALPHAS) == classical.rbf_grid(10)["model__alpha"]
 
 
@@ -175,7 +175,7 @@ def test_quantum_predictions_are_invariant_and_the_negative_control_is_not():
 
 def test_team_zz_readout_has_a_classical_closed_form():
     from qm9dipole.models.quantum import QuantumFeatureTransformer
-    from qm9dipole.models.quantum_kernel import zz_readout_closed_form
+    from qm9dipole.models.quantum_readout import zz_readout_closed_form
 
     X = np.random.default_rng(8).normal(size=(20, 6))
     feats = QuantumFeatureTransformer(gamma=0.45, reps=2, simulation_method="batched").fit(X).transform(X)
@@ -183,7 +183,7 @@ def test_team_zz_readout_has_a_classical_closed_form():
 
 
 def test_quantum_ridge_build_runs_in_the_tabular_harness(frame):
-    from qm9dipole.models.quantum_kernel import quantum_ridge_build
+    from qm9dipole.models.quantum_readout import quantum_ridge_build
 
     F, y = frame
     est, grid = quantum_ridge_build(0, "yeo_johnson", "sqrt", ("pca", 4), F.shape[1])

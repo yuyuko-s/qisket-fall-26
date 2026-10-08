@@ -1,6 +1,10 @@
 # Figures
 
-Grouped like [../results/](../results/README.md). `test_run*` figures are made by `notebooks/07_test_comparison.ipynb`
+The active ⟨Z⟩ ridge presentation uses [qridge_learning_curves.png](comparison/qridge_learning_curves.png),
+created by [07_quantum_feature_ridge.ipynb](../notebooks/07_quantum_feature_ridge.ipynb).
+The inventory below includes figures from the archived multi-model comparison.
+
+Grouped like [../results/](../results/README.md). `test_run*` figures are made by `archive/quantum_models/notebooks/07_test_comparison.ipynb`
 from the test sets; `explore*` figures by the development notebooks.
 
 | Folder | Key figures |

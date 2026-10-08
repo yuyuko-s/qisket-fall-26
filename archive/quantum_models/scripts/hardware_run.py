@@ -6,9 +6,12 @@
     python scripts/hardware_run.py --backend ibm_quebec --submit # submit ONE job (shows the plan, asks to confirm)
     python scripts/hardware_run.py --retrieve <job id>           # fetch a submitted job's results and score them
 
-The active run measures the team's ⟨Z⟩ ridge end to end: every training and test molecule,
-with the ridge readout refit on the measured features. Settings come from training-only CV
-in run 1. The archived driver in archive/quantum_models/scripts/ retains the broader comparison.
+What runs (`qm9dipole.hardware`): the projected quantum kernel (X, Y, Z bases) and the team's ⟨Z⟩ ridge
+(Z basis) end to end — every training molecule of S_(seed, N) and every test molecule measured, readout
+refit on the measured features — and a small block of fidelity-kernel entries (with each test molecule's
+overlap with itself, for the depolarizing correction). Models use the settings their CV chose in a test
+run (default: run 1). The test molecules are those of test run 1's noise section (30 per quantum test
+subset), so the device, the FakeFez/FakeQuebec noise models and exact simulation compare directly.
 
 Safety (docs/EVALUATION_RULES.md rule 9): a real device is contacted only with --submit (after a typed confirmation of
 the plan, or --yes once the team has approved it in advance) or --retrieve. The job is capped at
@@ -45,7 +48,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--backend", default="FakeQuebec", help="a fake backend (local Aer) or a device name such as ibm_quebec")
     ap.add_argument("--account", default="pinq2", help="saved QiskitRuntimeService account name")
-    ap.add_argument("--parts", default="qridge")
+    ap.add_argument("--parts", default="pqk,qridge,kernel")
     ap.add_argument("--shots", type=int, default=1000)
     ap.add_argument("--n-train", type=int, default=100)
     ap.add_argument("--seed", type=int, default=0)
@@ -73,8 +76,6 @@ def main() -> int:
             if k not in ("retrieve", "submit", "yes", "no_wait"):
                 setattr(args, k, v)
     parts = [p for p in args.parts.split(",") if p]
-    if set(parts) - {"qridge"}:
-        ap.error("only qridge is active; use the archived hardware driver for other models")
     kb = tuple(int(v) for v in args.kernel_block.lower().split("x"))
     device = not args.backend.startswith("Fake")
     if args.submit and not device:

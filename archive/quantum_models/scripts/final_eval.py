@@ -5,11 +5,12 @@
     python scripts/final_eval.py --dry-run --smoke    # one seed, N = 100, small subsets: checks the script in minutes
     python scripts/final_eval.py --sections quantum,shots   # only some sections (quantum, track_a, shots, noise)
 
-The active quantum model is qridge: fixed Qiskit ⟨Z⟩ features followed by ridge regression.
-Historical kernel experiments are in archive/quantum_models/.
+Quantum model names: qkrr, qkrr_ry, qkrr_ryrz, qkrr_product, pqk (exact simulation) and qridge; a
+suffix @S (e.g. qkrr@1000) makes a kernel model shot-aware: tuned, fit and evaluated with S shots per
+circuit (`quantum_kernel.ShotNoisyKernel`).
 
 Every model is trained and tuned exactly as in the development notebooks (explore_04 for the
-classical tracks, the archived explore_06/07 notebooks for the quantum-feature model): on the saved training sets, with
+classical tracks, explore_06/07 for the quantum models): on the saved training sets, with
 cross-validation inside each training set only. Each fitted model then predicts the test sets
 and the development sets; the development scores reproduce those notebooks and are used, as
 before, to name the best Track A model at each size.
@@ -35,29 +36,41 @@ from qm9dipole.data import PROCESSED_DIR, load_qm9_table
 from qm9dipole.evaluate import dev_curve
 from qm9dipole.explore import feature_sets, load_atoms, load_catalog, load_config, load_features, load_preprocessing
 from qm9dipole.final import (CONFIG_PATH, RUN_LOG, evaluation_frame, load_config as load_eval_config, log_run,
-                             next_run_number, noisy_feature_scores, shot_scores, timed)
+                             next_run_number, noisy_feature_scores, noisy_fidelity_scores, shot_scores, timed)
 from qm9dipole.models import classical
+from qm9dipole.models.classical import KRR_ALPHAS
 from qm9dipole.models.fitters import ChargeFitter, MeanFitter, TabularFitter, XGBFitter
-from qm9dipole.models.quantum_readout import quantum_ridge_build
+from qm9dipole.archive.quantum_kernel import (FidelityKernel, KernelRidgeFitter, ProjectedKernel, ShotNoisyKernel,
+                                             quantum_ridge_build)
 from qm9dipole.provenance import RESULTS_DIR, config_hash, git_hash, results_file, save_result
 from qm9dipole.splits import load_splits
 
+KERNELS = {"qkrr": ("fidelity", "zz", 2), "qkrr_ry": ("fidelity", "ry", 2), "qkrr_ryrz": ("fidelity", "ry_rz", 2),
+           "qkrr_product": ("fidelity", "ry", 1), "pqk": ("projected", "zz", 2)}
 SECTIONS = ("quantum", "track_a", "shots", "noise")
+#: Ridge penalties of shot-aware models: the shared grid plus two stronger ones (shot noise calls for more
+#: regularization; at 100 shots CV chose the grid's largest α, 10, in a development check).
+SHOT_ALPHAS = (*KRR_ALPHAS, 100.0, 1000.0)
+
+
+def kernel_for(model: str, gammas=None, gammas_p=None, seed: int = 0):
+    """The kernel of a quantum model name; "name@S" adds S-shot noise everywhere (shot-aware)."""
+    base, _, shots = model.partition("@")
+    kind, enc, reps = KERNELS[base]
+    kern = (ProjectedKernel(enc, reps, gammas=gammas, gammas_p=gammas_p) if kind == "projected"
+            else FidelityKernel(enc, reps, gammas=gammas))
+    return ShotNoisyKernel(kern, int(shots), seed) if shots else kern
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--config", default=str(CONFIG_PATH))
+    ap.add_argument("--config", default=str(CONFIG_PATH.parents[1] / "archive/quantum_models/configs/test_eval_run1.yaml"))
     ap.add_argument("--sections", default=None, help="default: the config's `sections`, else all")
     ap.add_argument("--dry-run", action="store_true", help="score the development sets only (no test set is read)")
     ap.add_argument("--smoke", action="store_true", help="one seed, N = 100, small subsets")
     ap.add_argument("--allow-dirty", action="store_true")
     args = ap.parse_args()
     cfg = load_eval_config(args.config)
-    allowed = {"mean", "ridge", "rbf_krr", "rf", "xgb", "qridge"}
-    unsupported = set(cfg["quantum"]["models"]) - allowed
-    if unsupported or set(cfg.get("shots", {}).get("models", [])) - {"qridge"}:
-        ap.error("archived quantum models require archive/quantum_models/scripts/final_eval.py")
     sections = args.sections.split(",") if args.sections else list(cfg.get("sections", SECTIONS))
     sections = [s for s in SECTIONS if s in sections]  # always in this order
     unknown = set(args.sections.split(",") if args.sections else []) - set(SECTIONS)
@@ -126,7 +139,11 @@ def main() -> int:
                         continue
                     frame, red = inputs[name]
                     key = f"{model}|{name}"
-                    if model == "qridge":
+                    if model.partition("@")[0] in KERNELS:
+                        out[key] = KernelRidgeFitter(frame, kernel_for(model, seed=seed), seed, scaling=SC_B,
+                                                     target=TG_B, reduction=red, cv_max_n=max(q_sizes),
+                                                     alphas=SHOT_ALPHAS if "@" in model else KRR_ALPHAS)
+                    elif model == "qridge":
                         est, grid = quantum_ridge_build(seed, SC_B, TG_B, red, frame.shape[1])
                         out[key] = TabularFitter(frame, est, grid, seed, cv_max_n=max(q_sizes))
                     else:
@@ -137,7 +154,7 @@ def main() -> int:
 
         sets = {s: {n: splits.train[s][n] for n in q_sizes} for s in seeds}
         with timed("quantum section"):
-            # Score the small quantum subsets too, for exact-vs-shots comparisons.
+            # The quantum test subsets too (from run 2): shot-aware models compare with the shots section there.
             quantum, _ = dev_curve(make_quantum, sets, {**eval_ids, **q_ids}, y, cache_dir=cache, progress=True)
         quantum[["model", "inputs"]] = quantum["model"].str.split("|", expand=True).reindex(columns=[0, 1])
         quantum["inputs"] = quantum["inputs"].fillna("—")
@@ -157,12 +174,14 @@ def main() -> int:
         if model == "qridge":
             est, _ = quantum_ridge_build(seed, SC_B, TG_B, red, frame.shape[1])
             return TabularFitter(frame, est, {k: [v] for k, v in p.items()}, seed, cv_max_n=max(q_sizes)).fit(ids, y.loc[ids])
-        raise ValueError(f"finite-shot/noise evaluation supports qridge only, got {model}")
+        kern = kernel_for(model, gammas=[p["gamma"]], gammas_p=[p["gamma_p"]] if "gamma_p" in p else None)
+        return KernelRidgeFitter(frame, kern, seed, scaling=SC_B, target=TG_B, reduction=red, alphas=(p["alpha"],),
+                                 cv_max_n=max(q_sizes)).fit(ids, y.loc[ids])
 
     # --- Section 2: finite shots on the quantum test subsets ------------------------------------
     if "shots" in sections:
         scfg = cfg["shots"]
-        kinds = {"qridge": "z_readout"}
+        kinds = {"qkrr": "fidelity", "pqk": "projected", "qridge": "z_readout"}
         rows = []
         Xq = {k: XA.loc[v].to_numpy() for k, v in q_ids.items()}
         yq = {k: y.loc[v].to_numpy() for k, v in q_ids.items()}
@@ -188,11 +207,18 @@ def main() -> int:
         Xtr, ytr, Xte, yte = XA.loc[ids].to_numpy(), y.loc[ids].to_numpy(), XA.loc[test_ids].to_numpy(), y.loc[test_ids].to_numpy()
         rows = []
         with timed(f"noise section ({len(test_ids)} test molecules, {ncfg['backend']})"):
-            g = fixed_fit("qridge", ncfg["seed"], ncfg["n_train"], ids)
-            rows += [{"model": "qridge", **r} for r in noisy_feature_scores(
-                g, Xtr, ytr, Xte, yte, ncfg["shots"], ncfg["backend"], "z_readout")]
-        save(pd.DataFrame(rows), "noise", backend=ncfg["backend"], shots=ncfg["shots"],
-             n_train=ncfg["n_train"], seed=ncfg["seed"], test_molecules={k: per for k in q_ids})
+            f = fixed_fit("qkrr", ncfg["seed"], ncfg["n_train"], ids)
+            fid_rows, kernels = noisy_fidelity_scores(f, Xtr, Xte, yte, ncfg["shots"], ncfg["backend"])
+            rows += [{"model": "qkrr", **r} for r in fid_rows]
+            for model, kind in (("pqk", "projected"), ("qridge", "z_readout")):
+                g = fixed_fit(model, ncfg["seed"], ncfg["n_train"], ids)
+                rows += [{"model": model, **r} for r in noisy_feature_scores(g, Xtr, ytr, Xte, yte, ncfg["shots"],
+                                                                             ncfg["backend"], kind)]
+        noise = pd.DataFrame(rows)
+        save(noise, "noise", backend=ncfg["backend"], shots=ncfg["shots"], n_train=ncfg["n_train"], seed=ncfg["seed"],
+             test_molecules={k: per for k in q_ids}, survival_mean=float(kernels["survival"].mean()))
+        npz = f"{tag}_noise_kernels.npz"
+        np.savez(results_file(npz) if out_dir == RESULTS_DIR else out_dir / npz, ids=test_ids, subset=which, **kernels)
 
     # --- Section 4: the most accurate classical models (Track A) ---------------------------------
     if "track_a" in sections:

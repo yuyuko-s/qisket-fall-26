@@ -1,5 +1,10 @@
 # Results
 
+**Active presentation:** [07_quantum_feature_ridge.ipynb](../notebooks/07_quantum_feature_ridge.ipynb).
+Use `model == "qridge"` in `comparison/test_run01_quantum.csv` and `hardware/test_run01_shots.csv`.
+The inventory below includes historical models archived in [archive/quantum_models/](../archive/quantum_models/README.md).
+Original CSVs and provenance sidecars are preserved; the old `headline` tables describe the archived kernel study.
+
 Every table the project produced, grouped by the question it answers. Each `.csv` has a `.meta.json` file next to
 it that records the commit, the configuration and the package versions it was made with. Errors are in debye (D).
 `test_run*` files come from the test sets; `explore*` files come from the development sets only (`dev`,
@@ -9,12 +14,12 @@ name (`qm9dipole.provenance.results_file`).
 
 ## [comparison/](comparison/): quantum models vs classical models of the same size
 
-Start here. Quantum kernel ridge (three encoders), a no-entanglement control, the projected quantum kernel and the
+Historical comparison: quantum kernel ridge (three encoders), a no-entanglement control, the projected quantum kernel and the
 team's ⟨Z⟩ ridge, each against classical models with the same inputs, training sets and tuning budget (N ≤ 1,000).
 
 | File | What it holds |
 |---|---|
-| `test_run01_headline.csv` | **The headline table**: the quantum model chosen by CV vs its RBF twin (paired difference), the best quantum-comparable classical model, the best classical model at that N, and the mean baseline; per test set and N |
+| `test_run01_headline.csv` | **Historical kernel headline table**: the quantum model chosen by CV vs its RBF twin (paired difference), the best quantum-comparable classical model, the best classical model at that N, and the mean baseline; per test set and N |
 | `test_run01_quantum.csv` | Every quantum and same-size classical model × input set × N × seed: MAE, RMSE, R² and bias on both test sets and both development sets, with the CV score and the settings chosen |
 | `test_run02_quantum.csv` | Run 2 (post-hoc): shot-aware quantum kernels at 100 / 1,000 / 10,000 shots, the exact models and the RBF twins again |
 | `test_run02_shot_aware.csv` | The same shot budget, tuned for exact kernels (run 1) vs with the shots inside cross-validation (run 2) |

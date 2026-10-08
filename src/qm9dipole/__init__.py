@@ -1,4 +1,4 @@
-"""QM9 dipole magnitude |mu| (debye) from fewer labels, with a quantum kernel regressor."""
+"""QM9 dipole magnitude |mu| (debye) from fewer labels, with a quantum-feature Z ridge regressor."""
 
 from pathlib import Path
 

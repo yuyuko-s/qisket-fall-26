@@ -33,7 +33,7 @@ import pandas as pd
 from qm9dipole.evaluate import scores
 from qm9dipole.final import feature_model
 
-PARTS = ("pqk", "qridge", "kernel")
+PARTS = ("qridge",)  # active presentation; legacy parts remain for archived runs
 KINDS = {"pqk": "projected", "qridge": "z_readout"}
 #: The fake backend that stands in for a real device when planning without connecting to IBM.
 FAKE_FOR = {"ibm_quebec": "FakeQuebec", "ibm_fez": "FakeFez", "ibm_marrakesh": "FakeMarrakesh"}
@@ -79,7 +79,7 @@ def fit_models(frame: pd.DataFrame, y: pd.Series, ids: np.ndarray, settings: dic
     """Refit qkrr (ZZ fidelity kernel), pqk and qridge on training IDs at fixed `settings` (no search),
     exactly as `scripts/final_eval.py` refits them for its shots and noise sections."""
     from qm9dipole.models.fitters import TabularFitter
-    from qm9dipole.models.quantum_kernel import FidelityKernel, KernelRidgeFitter, ProjectedKernel, quantum_ridge_build
+    from qm9dipole.models.quantum_readout import quantum_ridge_build
 
     out = {}
     for model, p in settings.items():
@@ -87,6 +87,8 @@ def fit_models(frame: pd.DataFrame, y: pd.Series, ids: np.ndarray, settings: dic
             est, _ = quantum_ridge_build(seed, scaling, target, reduction, frame.shape[1])
             f = TabularFitter(frame, est, {k: [v] for k, v in p.items()}, seed, cv_max_n=cv_max_n)
         else:
+            from qm9dipole.archive.quantum_kernel import FidelityKernel, KernelRidgeFitter, ProjectedKernel
+
             kern = (ProjectedKernel("zz", 2, gammas=[p["gamma"]], gammas_p=[p["gamma_p"]]) if model == "pqk"
                     else FidelityKernel("zz", 2, gammas=[p["gamma"]]))
             f = KernelRidgeFitter(frame, kern, seed, scaling=scaling, target=target, reduction=reduction,

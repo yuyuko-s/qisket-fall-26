@@ -1,9 +1,11 @@
-# Test-set evaluation (scripts/final_eval.py; presented by notebooks/07_quantum_feature_ridge.ipynb).
+# Test-set evaluation (scripts/final_eval.py; presented by notebooks/07_test_comparison.ipynb).
 # Iterating after a test run is allowed (docs/EVALUATION_RULES.md rule 2): change this file or the code, say
 # what changed in `note`, commit, and run again. Each run is logged in results/test_runs.csv.
-note: "presentation scope: qridge and classical baselines; original run-1 preprocessing and grids retained"
+# Run 1 (commit cc6fab3): the development settings, all four sections. Its config is in that commit
+# and in every results/test_run01_*.meta.json.
+note: "run 2 (post-hoc, after run 1): shot-aware quantum kernels (fidelity and projected), tuned, fit and evaluated with 100 / 1,000 / 10,000 shots per circuit; quantum section only; everything else as run 1"
+sections: [quantum]            # run 1: all four (quantum, track_a, shots, noise)
 
-sections: [quantum, shots, noise]
 seeds: [0, 1, 2]
 
 # Quantum models and their classical comparisons, at the quantum-comparable sizes (Track B
@@ -14,12 +16,19 @@ quantum:
     pls10: [all_legal, [pls, 10]]
     all_legal: [all_legal, null]
     composition: [composition, null]
+  # Model names: name@S = shot-aware (tuned, fit and evaluated with S shots per circuit).
+  # Run 1 also had ridge, rf, rbf_krr|composition, qkrr|composition, qkrr_ry, qkrr_ryrz, qkrr_product,
+  # pqk|composition and qridge; their run-1 results stand (same code, unchanged).
   models:                       # model: inputs it runs on
     mean: [none]
-    ridge: [pls10, all_legal]
-    rbf_krr: [pls10, all_legal, composition]
-    rf: [pls10, all_legal, composition]
-    qridge: [pls10]                     # the team's quantum-feature ridge
+    rbf_krr: [pls10, all_legal]         # the matched classical twin and the best Track B (reproduce run 1)
+    qkrr: [pls10]                       # exact (reproduces run 1)
+    qkrr@100: [pls10]
+    qkrr@1000: [pls10]
+    qkrr@10000: [pls10]
+    pqk: [pls10]                        # exact (reproduces run 1)
+    pqk@100: [pls10]
+    pqk@1000: [pls10]
 
 # The most accurate classical models (Track A protocol: log scaling, standardized target).
 track_a:
@@ -31,7 +40,7 @@ track_a:
 # Finite-shot inference on the quantum test subsets (exact binomial sampling, as validated
 # against Aer in notebook 07), at each model's settings chosen in the `quantum` section.
 shots:
-  models: [qridge]
+  models: [qkrr, pqk, qridge]
   sizes: [100, 300, 1000]
   shots: [100, 1000, 10000]
   reps: 5
