@@ -38,7 +38,7 @@ Observations from M0:
   | Headline inputs | `Z` (atomic numbers), `R` (Å; stored flattened, restored to (n, 3) by `load_qm9_table`) |
   | Target | `mu` (debye) |
   | Functions of Z and R (headline-legal) | `A`, `B`, `C` (rotational constants, GHz): equal to 505.379 GHz·amu·Å² / I for the moments of inertia of the geometry (verified to 1.2e-5, `explore_01`) |
-  | Exploration only, reported separately (CLAUDE.md rule 1) | `q` (Mulliken charges, e); `alpha`, `homo`, `lumo`, `gap`, `r2`, `zpve`, `U0`, `U`, `H`, `G`, `Cv` (units in `readme.txt`); `freqs` (harmonic frequencies, cm⁻¹, as listed in the file) |
+  | Exploration only, reported separately (docs/EVALUATION_RULES.md rule 1) | `q` (Mulliken charges, e); `alpha`, `homo`, `lumo`, `gap`, `r2`, `zpve`, `U0`, `U`, `H`, `G`, `Cv` (units in `readme.txt`); `freqs` (harmonic frequencies, cm⁻¹, as listed in the file) |
   | Bookkeeping | `id`, `formula`, `n_atoms`, `n_heavy`, `smiles` and `inchi` (relaxed geometry), `smiles_gdb` and `inchi_gdb` (GDB-17 input) |
 
 - 176 coordinates use the Fortran `*^` exponent (first: molecule 212), and all of them parse.

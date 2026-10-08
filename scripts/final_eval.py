@@ -15,7 +15,7 @@ cross-validation inside each training set only. Each fitted model then predicts 
 and the development sets; the development scores reproduce those notebooks and are used, as
 before, to name the best Track A model at each size.
 
-The team may iterate after a test run (CLAUDE.md rule 2). Each run gets the next run number,
+The team may iterate after a test run (docs/EVALUATION_RULES.md rule 2). Each run gets the next run number,
 writes results/test_runNN_<section>.csv (with .meta.json provenance) and appends a row to
 results/test_runs.csv with the commit and the config's `note` (what changed since the last run).
 Runs from a working tree with uncommitted code changes are refused unless --allow-dirty.
@@ -42,7 +42,7 @@ from qm9dipole.models.classical import KRR_ALPHAS
 from qm9dipole.models.fitters import ChargeFitter, MeanFitter, TabularFitter, XGBFitter
 from qm9dipole.models.quantum_kernel import (FidelityKernel, KernelRidgeFitter, ProjectedKernel, ShotNoisyKernel,
                                              quantum_ridge_build)
-from qm9dipole.provenance import RESULTS_DIR, config_hash, git_hash, save_result
+from qm9dipole.provenance import RESULTS_DIR, config_hash, git_hash, results_file, save_result
 from qm9dipole.splits import load_splits
 
 KERNELS = {"qkrr": ("fidelity", "zz", 2), "qkrr_ry": ("fidelity", "ry", 2), "qkrr_ryrz": ("fidelity", "ry_rz", 2),
@@ -217,13 +217,14 @@ def main() -> int:
         noise = pd.DataFrame(rows)
         save(noise, "noise", backend=ncfg["backend"], shots=ncfg["shots"], n_train=ncfg["n_train"], seed=ncfg["seed"],
              test_molecules={k: per for k in q_ids}, survival_mean=float(kernels["survival"].mean()))
-        np.savez(out_dir / f"{tag}_noise_kernels.npz", ids=test_ids, subset=which, **kernels)
+        npz = f"{tag}_noise_kernels.npz"
+        np.savez(results_file(npz) if out_dir == RESULTS_DIR else out_dir / npz, ids=test_ids, subset=which, **kernels)
 
     # --- Section 4: the most accurate classical models (Track A) ---------------------------------
     if "track_a" in sections:
         acfg, xcfg = cfg["track_a"], load_config()
         TA, CC = xcfg["track_a"], xcfg["charge_model"]
-        chosen_net = json.loads((RESULTS_DIR / "explore04_charge_selection.meta.json").read_text())["chosen"]
+        chosen_net = json.loads(results_file("explore04_charge_selection.meta.json").read_text())["chosen"]
         p_net = {**CC["common"], **CC["candidates"][chosen_net]}
         p_net["hidden"] = tuple(p_net["hidden"])
         a_sizes = [100] if args.smoke else list(acfg["sizes"])

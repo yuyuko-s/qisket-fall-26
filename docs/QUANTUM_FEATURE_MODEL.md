@@ -1,6 +1,6 @@
 # Quantum-feature regression model (`QuantumRidgeRegressor`)
 
-The team's quantum-feature ridge model (`src/qm9dipole/models/quantum.py`; tests `tests/test_quantum.py`, `tests/test_quantum_encoding.py`; synthetic demo `notebooks/02_quantum_regression.ipynb`). This page is the model's API documentation, moved here unchanged from the README; how the model performed is in the README's Results section.
+The team's quantum-feature ridge model (`src/qm9dipole/models/quantum.py`; tests `tests/test_quantum.py`, `tests/test_quantum_encoding.py`). The synthetic demo notebook described at the end was archived and is not part of the submission. This page is the model's API documentation, moved here unchanged from the README; how the model performed is in the README's Results section.
 
 `src/qm9dipole/models/quantum.py` implements a fixed Qiskit data encoder with a classical
 linear ridge readout. `QuantumRidgeRegressor` fits `StandardScaler` on training inputs,
@@ -63,15 +63,14 @@ uses finite shots or a noise model here. Matrix product state (MPS) simulation c
 for shallow nearest-neighbor structure, not arbitrary deep or highly entangled circuits.
 No IBM services are connected; a hardware adapter remains separate work.
 
-Run the synthetic smoke notebook, including the same 24-input arrays across all nine
-combinations of 8/16/24 qubits and ZZ/RY/RY-RZ encoding with MPS:
+The model's tests:
 
 ```bash
-jupyter nbconvert --to notebook --execute --inplace notebooks/02_quantum_regression.ipynb
 pytest -q tests/test_quantum.py tests/test_quantum_encoding.py
 ```
 
-The notebook reports a training-mean baseline, validation MAE/RMSE, dimensions, logical
+The archived synthetic demo notebook ran the same 24-input arrays across all nine combinations of 8/16/24 qubits
+and ZZ/RY/RY-RZ encoding with MPS. It reported a training-mean baseline, validation MAE/RMSE, dimensions, logical
 circuit cost and local elapsed time without tuning or selecting a final model. It does not
 access QM9 test sets or hardware, complete M4, or commit the final hardware architecture.
 Nothing in this prototype demonstrates quantum advantage.

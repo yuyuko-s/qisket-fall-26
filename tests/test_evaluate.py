@@ -114,7 +114,7 @@ def test_every_model_fits_and_predicts(name, compressed):
 
 
 def test_compressed_pipeline_fits_pca_on_training_rows_only():
-    # PCA inside the pipeline sees only the rows it is fit on (CLAUDE.md rule 3).
+    # PCA inside the pipeline sees only the rows it is fit on (docs/EVALUATION_RULES.md rule 3).
     rng = np.random.default_rng(2)
     X = rng.normal(size=(50, 12))
     pipe, _ = classical.build("ridge", seed=0, compressed=True)

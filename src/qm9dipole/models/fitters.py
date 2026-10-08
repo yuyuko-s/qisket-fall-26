@@ -9,7 +9,7 @@ alike:
     fitter.describe()       # what was chosen (hyperparameters, epochs, parameter counts, ...)
     fitter.config           # the settings that define it (JSON-able; part of the cache key)
 
-Tuning never looks outside the training IDs (CLAUDE.md rule 2): 5-fold CV for small training
+Tuning never looks outside the training IDs (docs/EVALUATION_RULES.md rule 2): 5-fold CV for small training
 sets (the X1 / Track B protocol), an inner validation split for large ones. Every fitted
 transform lives inside the estimator, so it is refit on each training set and fold (rule 3).
 """

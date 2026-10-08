@@ -4,7 +4,7 @@ Every model is TransformedTargetRegressor(target transform, Pipeline(scaling →
 regressor)). Scaling and target options are in `preprocess` (explore_03 chooses them by
 CV). Because every fitted step sits inside the estimator, cloning and fitting it on a fold's
 training part refits all of them there: the compressed variant and the target transform are
-fit on each training set (and fold) only (CLAUDE.md rule 3). Hyperparameter names carry the
+fit on each training set (and fold) only (docs/EVALUATION_RULES.md rule 3). Hyperparameter names carry the
 wrapper's prefix, e.g. "regressor__model__alpha".
 
 Models:

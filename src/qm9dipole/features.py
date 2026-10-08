@@ -1,4 +1,4 @@
-"""Engineered, physics-motivated descriptors for |μ| (exploration; CLAUDE.md "Exploration").
+"""Engineered, physics-motivated descriptors for |μ| (exploration; docs/EVALUATION_RULES.md "Exploration").
 
 Every feature is a function of (Z, R) alone plus fixed tabulated constants (covalent radii,
 Pauling electronegativities, isotope masses), never another QM9 property, so these are headline-legal
@@ -232,7 +232,7 @@ def engineered(Z: np.ndarray, R: np.ndarray) -> np.ndarray:
 # --------------------------------------------------------------------------------------
 # Exploration-only features: they read DFT outputs (Mulliken charges, vibrational
 # frequencies) from the same calculation as μ, so they may only appear in results that are
-# labeled with the inputs used (CLAUDE.md rule 1). Not descriptors.
+# labeled with the inputs used (docs/EVALUATION_RULES.md rule 1). Not descriptors.
 # --------------------------------------------------------------------------------------
 
 #: 1 e·Å in debye.

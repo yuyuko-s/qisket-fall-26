@@ -21,7 +21,7 @@ training labels grows from 100 to 99,198, on molecules whose formulas were seen 
 - **One quantum model ran on IBM hardware** (`ibm_quebec`, 160 circuits × 1,000 shots, 45 s of QPU time). It matched
   exact simulation within sampling error: 0.778 D vs 0.794 D on 60 test molecules.
 
-![Learning curves on the test sets](figures/test_run01_learning_curves.png)
+![Learning curves on the test sets](figures/comparison/test_run01_learning_curves.png)
 
 *Test-set error vs number of training labels. Blue: quantum models on 10 qubits. Orange: RBF kernel ridge on the same
 10 inputs. Dashed black: the best classical model at each size. Dotted gray: predicting the mean. Error bars: standard
@@ -259,7 +259,7 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/explore_02_cleanin
 python scripts/final_eval.py --config configs/test_eval_run1.yaml --sections quantum --allow-dirty    # ~40 min
 ```
 
-- **What the last command writes:** `results/test_runNN_quantum.csv` (next free run number) and a new row in
+- **What the last command writes:** `results/comparison/test_runNN_quantum.csv` (next free run number) and a new row in
   `results/test_runs.csv`.
 - **Why `--allow-dirty`:** the script normally refuses to run with uncommitted changes, and executing the notebooks
   above modifies them.
@@ -269,9 +269,9 @@ To compare with the committed run 1 (the difference is 0.0 on the same platform)
 
 ```python
 import glob, pandas as pd
-new = sorted(glob.glob("results/test_run*_quantum.csv"))[-1]
+new = sorted(glob.glob("results/comparison/test_run*_quantum.csv"))[-1]
 key = ["model", "inputs", "seed", "n_train", "eval_set"]
-a, b = (pd.read_csv(f).fillna({"inputs": "—"}).set_index(key)["mae_D"] for f in (new, "results/test_run01_quantum.csv"))
+a, b = (pd.read_csv(f).fillna({"inputs": "—"}).set_index(key)["mae_D"] for f in (new, "results/comparison/test_run01_quantum.csv"))
 print(new, "max |Δ MAE| =", (a - b.loc[a.index]).abs().max())
 ```
 
@@ -409,7 +409,7 @@ R² and figures are in [notebooks/07_test_comparison.ipynb](notebooks/07_test_co
 | `test_unseen` MAE | 0.604 | 0.514 | 0.276 | 0.206 | 0.090 | **0.038** |
 | XGBoost, for comparison | 0.653 / 0.604 | 0.558 / 0.497 | 0.464 / 0.420 | 0.392 / 0.354 | 0.329 / 0.312 | 0.225 / 0.230 |
 
-![Track A learning curves](figures/test_run01_track_a.png)
+![Track A learning curves](figures/classical/test_run01_track_a.png)
 
 **Familiar vs unseen formulas.**
 - **On the test sets, unseen formulas were not harder:** the unseen/familiar MAE ratio is 0.88–0.98 for every model.
@@ -433,7 +433,7 @@ R² and figures are in [notebooks/07_test_comparison.ipynb](notebooks/07_test_co
 On the full test sets the shot-aware QKRR scores 0.544 / 0.497 D at 1,000 shots and 0.513 / 0.464 D at 10,000 (exact:
 0.492 / 0.437).
 
-![Shot-aware quantum models, run 2](figures/test_run02_shot_aware.png)
+![Shot-aware quantum models, run 2](figures/comparison/test_run02_shot_aware.png)
 
 **Noise and real hardware** (60 test molecules, 30 per subset; trained on S_(0,100); 1,000 shots; MAE in D):
 
@@ -450,7 +450,7 @@ On the full test sets the shot-aware QKRR scores 0.544 / 0.497 D at 1,000 shots 
 - **Hardware job:** `db3da0kvf2bc73csuk60`, 45 s of QPU charged. IBM's record of the job (timestamps, usage, execution
   span) and the raw shot outcomes are in [results/hardware/](results/hardware/).
 
-![The team's model, simulated and on IBM hardware](figures/hardware_comparison.png)
+![The team's model, simulated and on IBM hardware](figures/hardware/hardware_comparison.png)
 
 **Quantum resource cost** (10 qubits; transpiled for IBM Heron; QPU time ≈ circuits × shots × (circuit duration +
 readout + 250 µs repetition delay), a lower bound):
@@ -467,10 +467,18 @@ readout + 250 µs repetition delay), a lower bound):
 - **Simulation cost:** exact simulation of the 10-qubit models takes seconds per fit.
 
 **Supporting outputs.**
-- **Test runs:** every run is logged in [results/test_runs.csv](results/test_runs.csv). Per-run results are
-  `results/test_runNN_*.csv`, each with a `.meta.json` file recording the commit, configuration and package versions.
-- **Hardware:** files in [results/hardware/](results/hardware/).
-- **Development results:** `results/explore0*_*.csv`, summarized in [docs/OVERNIGHT_REPORT.md](docs/OVERNIGHT_REPORT.md).
+Results and figures are grouped by question; each folder's index is [results/README.md](results/README.md):
+- **[results/comparison/](results/comparison/), [figures/comparison/](figures/comparison/):** quantum models vs
+  classical models of the same size: test runs 1–2 (`test_run0*_quantum.csv`, `test_run01_headline.csv`,
+  `test_run02_shot_aware.csv`) and the development-set study (`explore06_*`, Track B baselines `explore04_track_b`).
+- **[results/hardware/](results/hardware/), [figures/hardware/](figures/hardware/):** shots, simulated noise, cost
+  and the IBM hardware runs (including IBM's job record and the raw shot outcomes).
+- **[results/classical/](results/classical/), [figures/classical/](figures/classical/):** the most accurate classical
+  models (Track A) and their diagnostics.
+- **[results/development/](results/development/), [figures/development/](figures/development/):** data analysis,
+  features and preprocessing choices.
+- **Run log:** [results/test_runs.csv](results/test_runs.csv), one row per test run. Every CSV has a `.meta.json` file
+  recording the commit, configuration and package versions.
 
 ## 7. Discussion and limitations
 
@@ -571,15 +579,17 @@ readout + 250 µs repetition delay), a lower bound):
 **Repository layout.**
 
 ```
-notebooks/   00–02 setup, parsing, descriptors · explore_01–07 development work (no test set) · 07_test_comparison (test results)
+notebooks/   00–02 setup, parsing, descriptors · explore_01–07 development work (no test set) · 07_test_comparison (test results;
+             start here for the quantum-vs-classical comparison)
 scripts/     final_eval.py (test runs) · hardware_run.py (IBM device runs)
 src/qm9dipole/  all logic, tested with pytest: data, splits, descriptors/features/atoms, preprocess, evaluate, noise, cost,
              hardware, final; models/ (classical, fitters, charge, quantum, qsim, quantum_kernel)
 configs/     splits.yaml · explore.yaml · test_eval_run1.yaml (run 1) · test_eval.yaml (run 2)
-results/     every result table (CSV) with a .meta.json provenance file; results/hardware/ for the device runs
+results/     comparison/ (quantum vs same-size classical) · hardware/ (shots, noise, cost, IBM runs) · classical/ (Track A)
+             · development/ · test_runs.csv (run log); every CSV has a .meta.json provenance file (index: results/README.md)
+figures/     the same four groups
 splits/      molecule-ID lists for every set and training set
-figures/     generated figures
-docs/        BRIEF.md (the prompt) · DATA.md (data, exclusions, splits) · DECISIONS.md (every design change, dated) ·
-             PLAN.md (original design) · OVERNIGHT_REPORT.md (development-set results) · QUANTUM_FEATURE_MODEL.md
+docs/        BRIEF.md (the prompt) · DATA.md (data, exclusions, splits) · EVALUATION_RULES.md (the protocol) ·
+             DECISIONS.md (every design change, dated) · QUANTUM_FEATURE_MODEL.md (the team model's API)
 tests/       671 tests, including negative controls for every split and invariance check
 ```

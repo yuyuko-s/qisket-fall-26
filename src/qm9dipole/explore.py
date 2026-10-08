@@ -27,12 +27,12 @@ import yaml
 
 from qm9dipole import REPO_ROOT
 from qm9dipole.data import PROCESSED_DIR
-from qm9dipole.provenance import RESULTS_DIR
+from qm9dipole.provenance import results_file
 
 CONFIG_PATH = REPO_ROOT / "configs" / "explore.yaml"
 FEATURES_PATH = PROCESSED_DIR / "explore_features.parquet"
 CATALOG_NAME = "explore02_feature_catalog"
-PREPROCESSING_PATH = RESULTS_DIR / "explore03_preprocessing.json"
+PREPROCESSING_PATH = results_file("explore03_preprocessing.json")
 
 #: Molecule-level feature blocks, as written by explore_02. Legal blocks are functions of Z and R.
 LEGAL_BLOCKS: tuple[str, ...] = ("composition", "cm", "engineered", "groups", "qeq", "rdf")
@@ -62,7 +62,7 @@ def load_features() -> pd.DataFrame:
 
 def load_catalog() -> pd.DataFrame:
     """One row per feature: block, level (molecule or atom), legal, kept, reason, description."""
-    path = RESULTS_DIR / f"{CATALOG_NAME}.csv"
+    path = results_file(f"{CATALOG_NAME}.csv")
     if not path.exists():
         raise FileNotFoundError(f"{path.name} not found: run notebooks/explore_02_cleaning_and_features.ipynb")
     return pd.read_csv(path)

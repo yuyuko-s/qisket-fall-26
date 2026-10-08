@@ -13,7 +13,7 @@ overlap with itself, for the depolarizing correction). Models use the settings t
 run (default: run 1). The test molecules are those of test run 1's noise section (30 per quantum test
 subset), so the device, the FakeFez/FakeQuebec noise models and exact simulation compare directly.
 
-Safety (CLAUDE.md rule 9): a real device is contacted only with --submit (after a typed confirmation of
+Safety (docs/EVALUATION_RULES.md rule 9): a real device is contacted only with --submit (after a typed confirmation of
 the plan, or --yes once the team has approved it in advance) or --retrieve. The job is capped at
 --max-seconds of QPU time. The IBM account is the one saved locally under --account (default "pinq2");
 no token appears in this repository. Runs that score test molecules are logged in results/test_runs.csv.
@@ -38,7 +38,7 @@ from qm9dipole.explore import feature_sets, load_catalog, load_features, load_pr
 from qm9dipole.final import evaluation_frame, log_run, next_run_number, timed
 from qm9dipole.hardware import (FAKE_FOR, PARTS, build_blocks, fit_models, parse, plan, run_local, score,
                                 select_test_molecules, settings_from_run, submit)
-from qm9dipole.provenance import RESULTS_DIR, config_hash, git_hash, save_result
+from qm9dipole.provenance import RESULTS_DIR, config_hash, git_hash, results_file, save_result
 from qm9dipole.splits import load_splits
 
 OUT = RESULTS_DIR / "hardware"
@@ -55,7 +55,7 @@ def main() -> int:
     ap.add_argument("--per-subset", type=int, default=30)
     ap.add_argument("--kernel-block", default="10x5", help="test x training molecules of fidelity-kernel entries")
     ap.add_argument("--max-seconds", type=int, default=300, help="QPU-time cap of the job (refuses a larger plan)")
-    ap.add_argument("--settings", default="results/test_run01_quantum.csv",
+    ap.add_argument("--settings", default="results/comparison/test_run01_quantum.csv",
                     help="a test run's quantum-section CSV (relative to the repository): the settings each model chose by CV")
     ap.add_argument("--dry-run", action="store_true", help="development molecules instead of test molecules; not logged")
     ap.add_argument("--submit", action="store_true", help="submit to the real device named by --backend")
@@ -106,6 +106,8 @@ def main() -> int:
     y = pd.concat([features["mu"].astype(np.float64), mu.loc[np.setdiff1d(XA.index, features.index)]])
     needed = {"qkrr" if p == "kernel" else p for p in parts}  # the kernel block uses the fidelity-kernel model
     settings_csv = REPO_ROOT / args.settings if not Path(args.settings).is_absolute() else Path(args.settings)
+    if not settings_csv.exists():  # a path recorded before results/ was grouped (results/README.md)
+        settings_csv = results_file(settings_csv.name)
     settings = {k: v for k, v in settings_from_run(pd.read_csv(settings_csv), args.seed, args.n_train).items() if k in needed}
     missing = needed - set(settings)
     if missing:

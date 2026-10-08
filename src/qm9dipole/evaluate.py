@@ -1,6 +1,6 @@
 """Metrics, cross-validation and the learning-curve harnesses (PLAN §6, §9; used from M3 on).
 
-Nothing here reads a test set (CLAUDE.md rule 2). Callers pass training data only, and every
+Nothing here reads a test set (docs/EVALUATION_RULES.md rule 2). Callers pass training data only, and every
 number this module returns is a cross-validation estimate inside it, or (exploration X2,
 `dev_curve`) a score on a development set held out from training:
 - hyperparameters are chosen by CV MAE, with the same folds for every model (PLAN §4 note);

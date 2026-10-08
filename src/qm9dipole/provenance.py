@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import platform
+import re
 import subprocess
 import warnings
 from importlib.metadata import PackageNotFoundError, version
@@ -15,6 +16,37 @@ import pandas as pd
 from qm9dipole import REPO_ROOT
 
 RESULTS_DIR = REPO_ROOT / "results"
+FIGURES_DIR = REPO_ROOT / "figures"
+
+#: Results and figures are grouped by the question they answer (results/README.md), the
+#: quantum-vs-classical comparison first. A file's group follows from its name (first match wins);
+#: names matching no pattern (e.g. the run log test_runs.csv) stay at the top level.
+OUTPUT_GROUPS: tuple[tuple[str, str], ...] = (
+    ("comparison", r"explore04_(track_b|quantum_baselines)|explore06_|test_run\d+_(quantum|headline|learning_curves|shot_aware)"),
+    ("hardware", r"explore07_|test_run\d+_(shots|noise)|hardware_"),
+    ("classical", r"explore04_|explore05_|test_run\d+_track_a"),
+    ("development", r"explore0[123]_|m\d_"),
+)
+
+
+def output_group(name: str) -> str:
+    """The subfolder of results/ and figures/ that holds the file `name` ("" for the top level)."""
+    for group, pattern in OUTPUT_GROUPS:
+        if re.match(pattern, name):
+            return group
+    return ""
+
+
+def results_file(name: str) -> Path:
+    """Path of the results file `name` (e.g. "explore06_main.csv") in its group folder."""
+    return RESULTS_DIR / output_group(name) / name
+
+
+def figure_file(name: str) -> Path:
+    """Path of the figure `name` (e.g. "explore06_qubits.png") in its group folder (created if needed)."""
+    path = FIGURES_DIR / output_group(name) / name
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
 
 #: Distributions whose versions are recorded with every results file.
 TRACKED_PACKAGES: tuple[str, ...] = (
@@ -74,12 +106,16 @@ def config_hash(config: dict) -> str:
     return hashlib.sha256(canonical.encode()).hexdigest()[:12]
 
 
-def save_result(df: pd.DataFrame, name: str, out_dir: Path = RESULTS_DIR, **meta) -> Path:
+def save_result(df: pd.DataFrame, name: str, out_dir: Path | None = None, **meta) -> Path:
     """Write <out_dir>/<name>.csv and a <name>.meta.json sidecar with its provenance.
 
-    The sidecar records the git hash and package versions (CLAUDE.md conventions) plus any
-    `meta` keyword arguments, such as seeds and sample sizes. Returns the CSV path.
+    By default (or with out_dir = RESULTS_DIR) the file goes to its group folder of results/
+    (`output_group`). The sidecar records the git hash and package versions plus any `meta`
+    keyword arguments, such as seeds and sample sizes. Returns the CSV path.
     """
+    if out_dir is None or Path(out_dir) == RESULTS_DIR:
+        out_dir = RESULTS_DIR / output_group(name)
+    out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     stamp = {"git_hash": git_hash(), "versions": package_versions(), **meta}
     csv = out_dir / f"{name}.csv"

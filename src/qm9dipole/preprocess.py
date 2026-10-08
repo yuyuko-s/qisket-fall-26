@@ -1,7 +1,7 @@
 """Feature scaling and target transforms, as pipeline steps (explore_03 compares them).
 
 Every option is an sklearn transformer placed inside the model pipeline, so it is fit on each
-training set or fold only (CLAUDE.md rule 3), including choices that depend on the data,
+training set or fold only (docs/EVALUATION_RULES.md rule 3), including choices that depend on the data,
 such as which columns count as skewed.
 
 Feature scaling (SCALINGS):
@@ -32,7 +32,7 @@ are bounded anyway (an RBF or quantum kernel sends a far-away molecule to the me
 matters most for linear models.
 
 Target transforms (TARGETS), applied to μ before the model and inverted afterwards, so
-predictions stay in debye (CLAUDE.md rule 8):
+predictions stay in debye (docs/EVALUATION_RULES.md rule 8):
 - standard: centre and scale μ. Linear, so it changes nothing for models with an intercept,
             but kernel ridge has no intercept and would otherwise shrink toward 0 D, not
             toward the mean.

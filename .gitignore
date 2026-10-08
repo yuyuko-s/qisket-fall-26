@@ -18,3 +18,6 @@ dist/
 
 # A raw-data copy outside data/raw/ (it belongs there, gitignored)
 /dsgdb9nsd.xyz.tar.bz2
+
+# Superseded material kept locally, not part of the submission
+archive/

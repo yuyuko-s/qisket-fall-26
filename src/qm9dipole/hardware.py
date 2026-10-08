@@ -1,7 +1,7 @@
 """Running the quantum models on an IBM quantum computer (M8, optional). Driver: `scripts/hardware_run.py`.
 
 Nothing here submits a job by itself: `submit` is called only by the driver with `--submit`, after the
-plan (circuits, shots, estimated QPU time) has been shown and confirmed (CLAUDE.md rule 9). The IBM
+plan (circuits, shots, estimated QPU time) has been shown and confirmed (docs/EVALUATION_RULES.md rule 9). The IBM
 account is read from the local Qiskit config by name (`QiskitRuntimeService(name=...)`); no token is
 ever written anywhere.
 

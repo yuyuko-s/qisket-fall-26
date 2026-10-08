@@ -26,7 +26,7 @@ It is trained on |μ| alone. QM9 provides no dipole direction, and a global sign
 charges gives the same |μ̂|, so the learned charges are defined up to that sign. Ensembles
 therefore average magnitudes, never vectors.
 
-Units: features standardized on the training atoms (CLAUDE.md rule 3); charges come out in e
+Units: features standardized on the training atoms (docs/EVALUATION_RULES.md rule 3); charges come out in e
 when positions are in Å, since |μ̂| = 4.803 D/(e·Å) × ‖μ̂‖.
 """
 

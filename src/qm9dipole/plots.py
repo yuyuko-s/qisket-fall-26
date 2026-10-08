@@ -69,7 +69,7 @@ SEQUENTIAL = LinearSegmentedColormap.from_list(
 #: Diverging map for signed quantities such as correlations: red (−) ↔ neutral gray ↔ blue (+).
 DIVERGING = LinearSegmentedColormap.from_list("qm9_diverging", ["#e34948", "#f0efec", "#2a78d6"])
 
-#: Field roles in the EDA (CLAUDE.md rule 1): usable by headline models, or exploration only.
+#: Field roles in the EDA (docs/EVALUATION_RULES.md rule 1): usable by headline models, or exploration only.
 ROLE_COLORS: dict[str, str] = {"legal": SERIES[0], "dft": SERIES[1]}
 ROLE_LABELS: dict[str, str] = {"legal": "function of Z and R (headline-legal)",
                                "dft": "DFT output (exploration only)"}

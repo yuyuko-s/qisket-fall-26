@@ -3,7 +3,7 @@
 log of test runs. The driver is `scripts/final_eval.py`; `notebooks/07_test_comparison.ipynb`
 presents a run.
 
-The team iterates after test runs (CLAUDE.md rule 2): change the config or the code, describe
+The team iterates after test runs (docs/EVALUATION_RULES.md rule 2): change the config or the code, describe
 the change in the config's `note`, run again. Every run gets the next run number, its results
 are written as `results/test_runNN_<section>.csv` (with provenance sidecars), and one row is
 appended to `results/test_runs.csv`. Inside a run, every model still tunes on its training set

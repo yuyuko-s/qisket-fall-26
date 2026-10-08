@@ -7,7 +7,7 @@ files.
 
 The table keeps every field of every record. Headline models use only HEADLINE_INPUTS
 (atomic numbers and coordinates) to predict TARGET; the Mulliken charges and the other
-properties are kept for clearly labeled exploration (CLAUDE.md, "Exploration").
+properties are kept for clearly labeled exploration (docs/EVALUATION_RULES.md, "Exploration").
 
 Units: coordinates R in Å, dipole magnitude mu in debye, charges q in e; other properties as
 in readme.txt.
@@ -186,7 +186,7 @@ def parse_xyz(text: str) -> dict:
     Values are kept as found; cleaning (e.g. of doubled frequency lists) is a later step.
 
     Headline models use only HEADLINE_INPUTS. q, freqs and the other properties come from
-    the same DFT calculation as mu, so they are for labeled exploration (CLAUDE.md, rule 1).
+    the same DFT calculation as mu, so they are for labeled exploration (docs/EVALUATION_RULES.md, rule 1).
     """
     lines = text.splitlines()
     n_atoms = int(lines[0])
