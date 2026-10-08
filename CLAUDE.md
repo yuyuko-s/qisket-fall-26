@@ -234,8 +234,8 @@ python scripts/hardware_run.py --retrieve <job id>
 | M4 | Quantum kernel ridge regression (statevector) | done 2026-10-07 on development sets (`explore_06`; `models/quantum_kernel.py`) |
 | M5 | Finite-shot and noisy inference | done 2026-10-07 (`explore_07`: binomial model validated on Aer; shot sweep; FakeFez subset) |
 | M6 | Representation ablation and quantum cost table | done 2026-10-07 (composition only in `explore_04`/`06`; cost table in `explore_07`) |
-| M7 | Test-set evaluation, figures, writeup | done 2026-10-07: test runs 1 (development settings), 2 (post-hoc: shot-aware kernels), 3 (hardware rehearsal on FakeQuebec); `scripts/final_eval.py`, `notebooks/07_test_comparison.ipynb`, README results |
-| M8 | Optional: projected quantum kernel, small real-QPU run (ask first), extensions | projected kernel done; `scripts/hardware_run.py`; ⟨Z⟩ ridge job `db3da0kvf2bc73csuk60` on ibm_quebec submitted by the user 2026-10-07 19:25 (retrieve with `--retrieve`) |
+| M7 | Test-set evaluation, figures, writeup | done 2026-10-07: test runs 1 (development settings), 2 (post-hoc: shot-aware kernels), 3 (hardware rehearsal on FakeQuebec), 4 (ibm_quebec); `scripts/final_eval.py`, `notebooks/07_test_comparison.ipynb`, README results |
+| M8 | Optional: projected quantum kernel, small real-QPU run (ask first), extensions | done 2026-10-07: projected kernel; ⟨Z⟩ ridge on ibm_quebec (job `db3da0kvf2bc73csuk60`, 160 circuits × 1,000 shots, 45 s QPU; 0.778 D vs 0.794 exact; test run 4) |
 
 M0–M7 are all required by the full brief. Work one milestone at a time. After each, summarize
 what was done, what passed, and what the user should check.

@@ -40,8 +40,8 @@ dead ends are logged in `docs/DECISIONS.md`.
 | M4 Quantum kernel ridge regression (exact simulation) | done | `notebooks/explore_06_quantum_vs_classical.ipynb` |
 | M5 Finite-shot and noisy inference (simulators) | done | `notebooks/explore_07_shots_noise_cost.ipynb` |
 | M6 Representation ablation, quantum cost | done | `explore_04` (composition only), `explore_06`, `explore_07` (cost) |
-| M7 Evaluation on the test sets, writeup | done (3 test runs) | `scripts/final_eval.py`, `configs/test_eval.yaml`, `notebooks/07_test_comparison.ipynb` |
-| M8 Optional: projected quantum kernel, IBM hardware run | projected kernel done; ⟨Z⟩ ridge job on `ibm_quebec` submitted | `scripts/hardware_run.py`, notebook 07 section 9 |
+| M7 Evaluation on the test sets, writeup | done (4 test runs) | `scripts/final_eval.py`, `configs/test_eval.yaml`, `notebooks/07_test_comparison.ipynb` |
+| M8 Optional: projected quantum kernel, IBM hardware run | done: projected kernel; ⟨Z⟩ ridge on `ibm_quebec` (0.778 D, 45 s QPU) | `scripts/hardware_run.py`, notebook 07 section 9 |
 
 Development-set results (before any test run): `docs/OVERNIGHT_REPORT.md`.
 
@@ -79,8 +79,12 @@ circuit, run 1): cross-validation picks a setting whose kernel differences are s
 with the shot noise inside cross-validation (run 2, post-hoc), it scores **0.544 / 0.497 D** at 1,000 shots and
 0.513 / 0.464 D at 10,000 (familiar / unseen, N = 1000). The feature-based quantum models (projected kernel, the
 team's ⟨Z⟩ ridge) tolerate shots and simulated hardware noise (FakeFez and FakeQuebec noise models, within ≈ 0.04 D
-of exact). The ⟨Z⟩ ridge was also sent to **IBM's `ibm_quebec`** (160 circuits × 1,000 shots, job
-`db3da0kvf2bc73csuk60`); its result is in `notebooks/07_test_comparison.ipynb`, section 9, once IBM has run it.
+of exact). The ⟨Z⟩ ridge also ran on **IBM's `ibm_quebec`** (160 circuits × 1,000 shots, 45 s of QPU time, job
+`db3da0kvf2bc73csuk60`): trained and evaluated on the device's measurements of 100 training and 60 test molecules, it
+scores **0.778 D**, against 0.794 D in exact simulation and 0.798 D on the device's noise model, the same within
+sampling error (notebook 07, section 9).
+
+![The team's quantum model, simulated and on IBM hardware](figures/hardware_comparison.png)
 Cost decides what can run at all: predicting the 22,302 test molecules at N = 1000 needs ≈ 23 million circuits for
 the fidelity-kernel model (one per pair of molecules), against ≈ 70,000 for the projected kernel and ≈ 23,000 for the
 ⟨Z⟩ ridge.
@@ -89,12 +93,13 @@ the fidelity-kernel model (one per pair of molecules), against ≈ 70,000 for th
 classical twin to within 0.005 D, a no-entanglement control does just as well, and no quantum model beats the best
 classical model at any training size. The classical models keep improving with more labels (0.040 D with all 99,198),
 which the quantum models cannot reach within any realistic QPU budget. On a device, only the shot-aware or
-feature-based quantum models are usable; the latter are the ones that fit a QPU budget.
+feature-based quantum models are usable; the latter fit a QPU budget, and the team's ⟨Z⟩ ridge ran on
+IBM hardware (`ibm_quebec`) with no loss of accuracy.
 
-**How the test sets were used.** Three test runs so far (`results/test_runs.csv`). Run 1 used the development settings,
+**How the test sets were used.** Four test runs (`results/test_runs.csv`). Run 1 used the development settings,
 unchanged. Run 2 was designed **after** seeing run 1 (shot-aware quantum kernels) and is labeled post-hoc; it
 leaves every run-1 model unchanged and reproduces the 180 rows it shares with run 1 exactly. Run 3 rehearsed the
-hardware run on ibm_quebec's noise model. In every run, all settings were tuned by cross-validation inside the
+hardware run on ibm_quebec's noise model; run 4 is the IBM hardware run. In every run, all settings were tuned by cross-validation inside the
 training sets; no test set chose a setting within a run. The development notebooks (`explore_01`–`07`) never read a
 test set.
 
