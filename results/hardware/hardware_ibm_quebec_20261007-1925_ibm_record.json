@@ -1,0 +1,29 @@
+{
+ "what": "IBM Quantum record of the team's hardware job, read back from IBM Quantum Platform (job.metrics(), job.result())",
+ "job_id": "db3da0kvf2bc73csuk60",
+ "backend": "ibm_quebec",
+ "primitive": "sampler",
+ "status": "DONE",
+ "created_utc": "2026-10-07T23:25:54.163413Z",
+ "running_utc": "2026-10-08T00:50:26.508878Z",
+ "finished_utc": "2026-10-08T00:51:27.356Z",
+ "execution_span_utc": {
+  "start": "2026-10-08 00:50:39.297823",
+  "stop": "2026-10-08 00:51:22.409683",
+  "shots": 160000
+ },
+ "qpu_charge_time_seconds": 45,
+ "usage_resource_units": 0.7375,
+ "circuits_execution_time_seconds": 42.23013632,
+ "client_versions": "qiskit_ibm_runtime-0.50.0,qiskit-2.5.2*,qiskit_aer-0.17.2*",
+ "pubs": [
+  {
+   "pub": 0,
+   "rows": 160,
+   "shots": 1000,
+   "bits": 10
+  }
+ ],
+ "retrieved": "2026-10-07 21:03 Eastern Daylight Time",
+ "note": "Account and instance identifiers omitted. Raw shot outcomes: hardware_ibm_quebec_20261007-1925_raw_bits.npz"
+}
