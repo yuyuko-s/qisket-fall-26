@@ -1,0 +1,53 @@
+{
+ "git_hash": "89e6b62bfd343f0dcfa5f46a04d036ad88eb5d76",
+ "versions": {
+  "python": "3.12.14",
+  "qiskit": "2.5.2",
+  "qiskit-aer": "0.17.2",
+  "qiskit-ibm-runtime": "0.50.0",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "scikit-learn": "1.9.1",
+  "pandas": "3.0.6",
+  "pyarrow": "25.0.1",
+  "matplotlib": "3.11.2",
+  "pyyaml": "6.0.3",
+  "xgboost": "3.4.1",
+  "pytest": "9.1.1"
+ },
+ "run": 3,
+ "backend": "FakeQuebec",
+ "device": false,
+ "job_id": null,
+ "shots": 1000,
+ "seed": 0,
+ "n_train": 100,
+ "per_subset": 30,
+ "parts": [
+  "pqk",
+  "qridge",
+  "kernel"
+ ],
+ "kernel_block": [
+  10,
+  5
+ ],
+ "settings_from": "results/test_run01_quantum.csv",
+ "settings": {
+  "qkrr": {
+   "alpha": 1.0,
+   "gamma": 0.03556558820077846
+  },
+  "pqk": {
+   "alpha": 1.0,
+   "gamma": 0.02,
+   "gamma_p": 3.162277660168379
+  },
+  "qridge": {
+   "regressor__model__alpha": 1.0,
+   "regressor__model__gamma": 0.02
+  }
+ },
+ "dry_run": false,
+ "label": "quantum circuits measured on FakeQuebec noise model (local Aer); classical readout refit locally; Z, R only"
+}

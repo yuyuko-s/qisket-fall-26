@@ -37,12 +37,70 @@ dead ends are logged in `docs/DECISIONS.md`.
 | X1 Classical statistical analysis (exploration), following PLAN.md literally | done, superseded by X2 | |
 | X2 Classical rebuild for accuracy: Track A (best model from Z and R, up to 99,198 labels) and Track B (quantum-comparable, N ≤ 1000) | done | `notebooks/explore_01` … `explore_05` |
 | M3 Classical baselines with CV and development-set scores | done (X2 Track B) | `notebooks/explore_04_classical_models.ipynb` |
-| M4 Quantum kernel ridge regression (exact simulation) | done on development sets | `notebooks/explore_06_quantum_vs_classical.ipynb` |
+| M4 Quantum kernel ridge regression (exact simulation) | done | `notebooks/explore_06_quantum_vs_classical.ipynb` |
 | M5 Finite-shot and noisy inference (simulators) | done | `notebooks/explore_07_shots_noise_cost.ipynb` |
 | M6 Representation ablation, quantum cost | done | `explore_04` (composition only), `explore_06`, `explore_07` (cost) |
-| M7 Evaluation on the test sets, writeup | in progress | `scripts/final_eval.py`, `configs/test_eval.yaml`, `notebooks/07_test_comparison.ipynb` |
+| M7 Evaluation on the test sets, writeup | done (3 test runs) | `scripts/final_eval.py`, `configs/test_eval.yaml`, `notebooks/07_test_comparison.ipynb` |
+| M8 Optional: projected quantum kernel, IBM hardware run | projected kernel done; ⟨Z⟩ ridge job on `ibm_quebec` submitted | `scripts/hardware_run.py`, notebook 07 section 9 |
 
-Results so far (development sets only; no test set has been evaluated): see `docs/OVERNIGHT_REPORT.md`.
+Development-set results (before any test run): `docs/OVERNIGHT_REPORT.md`.
+
+## Results on the test sets
+
+All numbers: test-set MAE in debye, mean over 3 seeds, from `scripts/final_eval.py` (details, RMSE, standard
+deviations and figures in `notebooks/07_test_comparison.ipynb`). Inputs: atomic numbers and 3D coordinates only.
+Quantum models are simulated on this computer unless marked "IBM hardware". Guessing the average dipole gives
+1.14 D (familiar formulas) and 1.25 D (unseen formulas).
+
+![Learning curves on the test sets](figures/test_run01_learning_curves.png)
+
+**Quantum vs classical at the quantum-comparable sizes** (10 PLS inputs = 10 qubits; test run 1):
+
+| Model | N = 100 | N = 300 | N = 1000 | N = 1000, unseen formulas |
+|---|---|---|---|---|
+| Quantum kernel ridge (ZZ map, 10 qubits; headline, chosen by CV) | 0.735 | 0.578 | 0.492 | 0.437 |
+| Projected quantum kernel | 0.724 | 0.578 | 0.493 | 0.440 |
+| Team's quantum-feature ⟨Z⟩ ridge | 0.731 | 0.597 | 0.545 | 0.493 |
+| Product-state kernel (no entanglement; control) | 0.732 | 0.578 | 0.490 | 0.433 |
+| RBF kernel ridge, same 10 inputs (matched classical twin) | 0.730 | 0.578 | 0.490 | 0.433 |
+| Best quantum-comparable classical (CV): RBF kernel ridge, 188 features | 0.662 | 0.549 | 0.453 | 0.420 |
+| Composition only (any model) | ≈ 0.99 | ≈ 0.98 | ≈ 0.94 | ≈ 0.81 |
+
+**The most accurate classical model** (Track A; latent-charge network from N = 1000, chosen on the development set):
+
+| N | 100 | 300 | 1,000 | 3,000 | 10,000 | 99,198 (all, 1 seed) |
+|---|---|---|---|---|---|---|
+| familiar formulas | 0.653 | 0.550 | 0.280 | 0.230 | 0.095 | **0.040** |
+| unseen formulas | 0.604 | 0.514 | 0.276 | 0.206 | 0.090 | **0.038** |
+
+**On a quantum device.** A device estimates every quantum number from a finite number of measurements
+("shots"). Tuned on exact kernels, the fidelity-kernel model collapses at N = 1000 (≈ 10 D at 1,000 shots per
+circuit, run 1): cross-validation picks a setting whose kernel differences are smaller than the shot noise. Tuned
+with the shot noise inside cross-validation (run 2, post-hoc), it scores **0.544 / 0.497 D** at 1,000 shots and
+0.513 / 0.464 D at 10,000 (familiar / unseen, N = 1000). The feature-based quantum models (projected kernel, the
+team's ⟨Z⟩ ridge) tolerate shots and simulated hardware noise (FakeFez and FakeQuebec noise models, within ≈ 0.04 D
+of exact). The ⟨Z⟩ ridge was also sent to **IBM's `ibm_quebec`** (160 circuits × 1,000 shots, job
+`db3da0kvf2bc73csuk60`); its result is in `notebooks/07_test_comparison.ipynb`, section 9, once IBM has run it.
+Cost decides what can run at all: predicting the 22,302 test molecules at N = 1000 needs ≈ 23 million circuits for
+the fidelity-kernel model (one per pair of molecules), against ≈ 70,000 for the projected kernel and ≈ 23,000 for the
+⟨Z⟩ ridge.
+
+**Conclusion.** With 10 inputs (10 qubits), the quantum kernels behave like a classical RBF kernel: they match their
+classical twin to within 0.005 D, a no-entanglement control does just as well, and no quantum model beats the best
+classical model at any training size. The classical models keep improving with more labels (0.040 D with all 99,198),
+which the quantum models cannot reach within any realistic QPU budget. On a device, only the shot-aware or
+feature-based quantum models are usable; the latter are the ones that fit a QPU budget.
+
+**How the test sets were used.** Three test runs so far (`results/test_runs.csv`). Run 1 used the development settings,
+unchanged. Run 2 was designed **after** seeing run 1 (shot-aware quantum kernels) and is labeled post-hoc; it
+leaves every run-1 model unchanged and reproduces the 180 rows it shares with run 1 exactly. Run 3 rehearsed the
+hardware run on ibm_quebec's noise model. In every run, all settings were tuned by cross-validation inside the
+training sets; no test set chose a setting within a run. The development notebooks (`explore_01`–`07`) never read a
+test set.
+
+**Caveats.** QM9's labels and geometries are DFT calculations, not experiments; the models take the DFT-optimized
+geometry as input, which itself costs a quantum-chemistry calculation (the brief's "assumed available input"). Track A's
+full-pool result uses one seed (cost). Exclusions and split construction: `docs/DATA.md`.
 
 ## Setup
 

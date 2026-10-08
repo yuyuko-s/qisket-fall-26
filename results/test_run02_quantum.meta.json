@@ -1,0 +1,154 @@
+{
+ "git_hash": "89e6b62bfd343f0dcfa5f46a04d036ad88eb5d76",
+ "versions": {
+  "python": "3.12.14",
+  "qiskit": "2.5.2",
+  "qiskit-aer": "0.17.2",
+  "qiskit-ibm-runtime": "0.50.0",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "scikit-learn": "1.9.1",
+  "pandas": "3.0.6",
+  "pyarrow": "25.0.1",
+  "matplotlib": "3.11.2",
+  "pyyaml": "6.0.3",
+  "xgboost": "3.4.1",
+  "pytest": "9.1.1"
+ },
+ "run": 2,
+ "note": "run 2 (post-hoc, after run 1): shot-aware quantum kernels (fidelity and projected), tuned, fit and evaluated with 100 / 1,000 / 10,000 shots per circuit; quantum section only; everything else as run 1",
+ "config_hash": "5f687d286079",
+ "config": {
+  "note": "run 2 (post-hoc, after run 1): shot-aware quantum kernels (fidelity and projected), tuned, fit and evaluated with 100 / 1,000 / 10,000 shots per circuit; quantum section only; everything else as run 1",
+  "sections": [
+   "quantum"
+  ],
+  "seeds": [
+   0,
+   1,
+   2
+  ],
+  "quantum": {
+   "sizes": [
+    100,
+    300,
+    1000
+   ],
+   "inputs": {
+    "pls10": [
+     "all_legal",
+     [
+      "pls",
+      10
+     ]
+    ],
+    "all_legal": [
+     "all_legal",
+     null
+    ],
+    "composition": [
+     "composition",
+     null
+    ]
+   },
+   "models": {
+    "mean": [
+     "none"
+    ],
+    "rbf_krr": [
+     "pls10",
+     "all_legal"
+    ],
+    "qkrr": [
+     "pls10"
+    ],
+    "qkrr@100": [
+     "pls10"
+    ],
+    "qkrr@1000": [
+     "pls10"
+    ],
+    "qkrr@10000": [
+     "pls10"
+    ],
+    "pqk": [
+     "pls10"
+    ],
+    "pqk@100": [
+     "pls10"
+    ],
+    "pqk@1000": [
+     "pls10"
+    ]
+   }
+  },
+  "track_a": {
+   "sizes": [
+    100,
+    300,
+    1000,
+    3000,
+    10000
+   ],
+   "full_pool_seeds": [
+    0
+   ],
+   "models": [
+    "mean",
+    "ridge",
+    "rbf_krr",
+    "xgb",
+    "charge_net"
+   ],
+   "rbf_krr_max_n": 10000
+  },
+  "shots": {
+   "models": [
+    "qkrr",
+    "pqk",
+    "qridge"
+   ],
+   "sizes": [
+    100,
+    300,
+    1000
+   ],
+   "shots": [
+    100,
+    1000,
+    10000
+   ],
+   "reps": 5
+  },
+  "noise": {
+   "backend": "FakeFez",
+   "n_train": 100,
+   "seed": 0,
+   "per_subset": 30,
+   "shots": 1000
+  }
+ },
+ "dry_run": false,
+ "smoke": false,
+ "eval_sets": {
+  "test_familiar": 5484,
+  "test_unseen": 16818,
+  "dev": 5000,
+  "dev_unseen": 4183,
+  "test_familiar_q": 80,
+  "test_unseen_q": 370
+ },
+ "scaling": "yeo_johnson",
+ "target": "sqrt",
+ "sizes": [
+  100,
+  300,
+  1000
+ ],
+ "seeds": [
+  0,
+  1,
+  2
+ ],
+ "label": "test-set evaluation; Z, R only; trained and tuned on the saved training sets only"
+}

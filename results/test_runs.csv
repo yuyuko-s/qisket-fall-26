@@ -1,2 +1,4 @@
 run,started,finished,commit,config_hash,sections,smoke,note
 1,2026-10-07 15:35,2026-10-07 19:45,cc6fab3,d91d58827294,"quantum,track_a,shots,noise",False,"run 1: the models and settings of the development notebooks (explore_04, 06, 07), unchanged"
+2,2026-10-07 19:47,2026-10-07 20:18,89e6b62,5f687d286079,quantum,False,"run 2 (post-hoc, after run 1): shot-aware quantum kernels (fidelity and projected), tuned, fit and evaluated with 100 / 1,000 / 10,000 shots per circuit; quantum section only; everything else as run 1"
+3,2026-10-07 20:20,2026-10-07 20:20,89e6b62,e6f39ca13e27,hardware:FakeQuebec,False,"local noise model run of pqk, qridge, kernel on FakeQuebec: S_(0,100), 30 molecules per quantum test subset, 1,000 shots; settings from test_run01_quantum.csv"
