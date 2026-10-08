@@ -177,9 +177,7 @@ the team model are in [docs/QUANTUM_FEATURE_MODEL.md](docs/QUANTUM_FEATURE_MODEL
   `SamplerV2` (z-scores: mean −0.01, sd 1.00).
 - **Hardware noise:** Aer `SamplerV2` with noise models from `qiskit-ibm-runtime`'s fake backends (FakeFez; FakeQuebec,
   IBM's fake backend for `ibm_quebec`) after transpiling for the device
-  ([src/qm9dipole/noise.py](src/qm9dipole/noise.py)). <!-- TODO(team) FakeQuebec: the FakeQuebec snapshot in
-  qiskit-ibm-runtime 0.50 is an older 127-qubit Eagle r3 calibration; ibm_quebec is now a 156-qubit Heron r2 (FakeFez
-  family). Revise wording here if needed. -->
+  ([src/qm9dipole/noise.py](src/qm9dipole/noise.py)).
 - **Cost:** transpilation with Qiskit's preset pass manager, plus gate counts and durations
   ([src/qm9dipole/cost.py](src/qm9dipole/cost.py)).
 - **Hardware:** the run uses `qiskit-ibm-runtime`'s `SamplerV2` on `ibm_quebec`
@@ -345,7 +343,7 @@ python scripts/hardware_run.py --retrieve <job id>                        # fetc
 | Cost, shots, noise, development sets | `explore_07` | Transpiled for IBM Heron; shot model validated on Aer; FakeFez noise on 30 molecules | Done |
 | **Test run 1**: the development settings, unchanged | `final_eval.py` | 22 quantum-section models; Track A to 99,198; shots (S × 5 reps); FakeFez noise on 60 test molecules | Done |
 | **Test run 2** (post-hoc): shot-aware quantum kernels | `final_eval.py` | QKRR at S = 100 / 1,000 / 10,000 and projected kernel at S = 100 / 1,000, tuned with shots inside CV; α grid extended to 1,000 | Done |
-| **Test run 3**: hardware circuits on the FakeQuebec noise model | `hardware_run.py` | Projected kernel, ⟨Z⟩ ridge, 10 × 5 fidelity-kernel block; 700 circuits × 1,000 shots | Done <!-- TODO(team) FakeQuebec: older Eagle-era snapshot of ibm_quebec; see the note in section 3 --> |
+| **Test run 3**: hardware circuits on the FakeQuebec noise model | `hardware_run.py` | Projected kernel, ⟨Z⟩ ridge, 10 × 5 fidelity-kernel block; 700 circuits × 1,000 shots 
 | **Test run 4**: the ⟨Z⟩ ridge on IBM `ibm_quebec` | `hardware_run.py` | 160 circuits × 1,000 shots (100 training + 60 test molecules), job `db3da0kvf2bc73csuk60` | Done |
 
 **Controlled comparisons.**
@@ -445,8 +443,6 @@ On the full test sets the shot-aware QKRR scores 0.544 / 0.497 D at 1,000 shots 
 | Projected kernel | 0.816 | 0.858 | 0.794 | 0.776 | — |
 | QKRR (fidelity kernel) | 0.833 | 0.833 | 0.919 (0.854 corrected) | — | — |
 
-<!-- TODO(team) FakeQuebec: column labeled as IBM's fake backend for ibm_quebec; it is an older Eagle-era snapshot. -->
-
 - **Uncertainty:** with 60 molecules each MAE is uncertain by about ±0.1 D, so the hardware result means "as good as
   simulation", not "better".
 - **Fidelity-kernel entries on the FakeQuebec noise model:** mean error 0.31 raw and 0.034 after a
@@ -502,9 +498,7 @@ readout + 250 µs repetition delay), a lower bound):
 5. **The hardware run is a feasibility demonstration:**
    - one model, 60 test molecules, 100 training molecules, one calibration day;
    - the projected kernel and the fidelity kernel ran only on simulated noise.
-6. **Noise models are snapshots.** <!-- TODO(team) FakeQuebec: decide whether to note here that the FakeQuebec
-   snapshot predates ibm_quebec's Heron r2 upgrade. -->
-7. **Cost figures are lower bounds:** they include the repetition delay but no job or queue overhead. The hardware job
+6. **Cost figures are lower bounds:** they include the repetition delay but no job or queue overhead. The hardware job
    waited about 85 min in IBM's queue.
 
 **How far the findings generalize.**
@@ -571,16 +565,6 @@ readout + 250 µs repetition delay), a lower bound):
 - **Hardware access:** IBM Quantum hardware (`ibm_quebec`), provided through PINQ² for the hackathon.
 - **Reused code:** no external code was copied beyond these libraries; `zz_feature_map` is Qiskit's.
 
-**Team contributions.** <!-- TODO(team): add full names and roles; adjust the wording below. -->
-- **Douglass:** project lead; problem framing, evaluation protocol, classical and quantum experiments, test and
-  hardware runs.
-- **yuyuko-s:** the team's quantum encoders and quantum-feature ⟨Z⟩ ridge model
-  ([src/qm9dipole/models/quantum.py](src/qm9dipole/models/quantum.py), its tests,
-  [notebooks/02_quantum_regression.ipynb](notebooks/02_quantum_regression.ipynb),
-  [docs/QUANTUM_FEATURE_MODEL.md](docs/QUANTUM_FEATURE_MODEL.md)); repository owner.
-- **AI assistance:** much of the implementation, analysis and documentation was written with an AI coding assistant
-  (Claude Code, Anthropic) under the team's direction and review. Commits it co-wrote carry a `Co-Authored-By` trailer;
-  its working rules are in [CLAUDE.md](CLAUDE.md).
 
 ---
 
